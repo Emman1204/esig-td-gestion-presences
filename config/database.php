@@ -11,7 +11,7 @@ class Database
     {
         if (self::$instance === null) {
             $host = 'localhost';
-            $dbname = 'attendance_db';
+            $dbname = 'spp_td';
             $user = 'root';
             $password = '';
 
