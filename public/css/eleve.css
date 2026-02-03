@@ -1,0 +1,39 @@
+body {
+    margin: 0;
+    height: 100vh;
+}
+
+.presence-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.presence-btn {
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    font-size: 2rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    background-color: #2ecc71;
+    color: white;
+    transition: background-color 0.3s;
+}
+
+.presence-btn.fin {
+    background-color: #e74c3c;
+}
+
+.timer {
+    margin-top: 20px;
+    font-size: 1.8rem;
+}
+
+.hidden {
+    display: none;
+}
+    
