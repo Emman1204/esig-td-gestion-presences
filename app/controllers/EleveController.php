@@ -148,4 +148,24 @@ class EleveController extends Controller
             'message' => 'Action inconnue'
         ]);
     }
+    /**
+     * ✅ AJAX : récupérer toutes les séances de l'élève
+     */
+    public function getSeances()
+    {
+        header('Content-Type: application/json');
+
+        $pdo = Database::getInstance();
+        $seanceModel = new Seance($pdo);
+
+        $eleveId = $_SESSION['user']['id'];
+
+        $seances = $seanceModel->findByEleve($eleveId);
+
+        echo json_encode([
+            'status' => 'success',
+            'seances' => $seances
+        ]);
+        exit;
+    }
 }

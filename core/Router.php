@@ -79,6 +79,13 @@ class Router
             return;
         }
 
+        // ✅ AJAX : récupérer les séances de l'élève
+        if ($uri === 'eleve/getSeances') {
+            require_once APP_PATH . '/controllers/EleveController.php';
+            (new EleveController())->getSeances();
+            return;
+        }
+
         // -------------------------------
         // ESPACE ENSEIGNANT
         // -------------------------------

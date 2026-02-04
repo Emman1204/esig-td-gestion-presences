@@ -74,7 +74,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 // ⚠️ On envoie uniquement l'heure pour le champ TIME
                 heure: new Date().toLocaleTimeString('fr-FR', { hour12: false })
             })
-
         })
             .then(async res => {
                 const text = await res.text();
@@ -87,6 +86,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (data.status === "success" && data.seanceId) {
                         currentSeanceId = data.seanceId;
                         btn.dataset.seanceId = currentSeanceId; // mettre à jour le bouton
+                    }
+
+                    // 🔁 RAFRAÎCHIR LE TABLEAU DES SÉANCES
+                    if (window.reloadSeances) {
+                        window.reloadSeances();
                     }
 
                     console.log(`${action.charAt(0).toUpperCase() + action.slice(1)} enregistré :`, data);

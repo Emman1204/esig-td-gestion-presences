@@ -30,44 +30,25 @@
 
     <link rel="stylesheet" href="/public/css/eleve.css">
     <script src="../../../public/js/presence.js" defer></script>
+    <script src="../../../public/js/seance.js" defer></script>
 
 
     <h1>Mes Séances</h1>
 
-    <?php if (!empty($seances)): ?>
-        <table border="1" cellpadding="5">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Heure Début</th>
-                    <th>Heure Fin</th>
-                    <th>Commentaire</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($seances as $seance): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($seance['SPP_SEAN_DATE']) ?></td>
-                        <td><?= htmlspecialchars($seance['SPP_SEAN_HEURE_DEB']) ?></td>
-                        <td><?= htmlspecialchars($seance['SPP_SEAN_HEURE_FIN']) ?></td>
-                        <td><?= htmlspecialchars($seance['SPP_SEAN_COMM']) ?></td>
-                        <td>
-                            <!-- Formulaire pour marquer la présence -->
-                            <form method="post" action="">
-                                <input type="hidden" name="seanId" value="<?= $seance['SPP_SEAN_ID'] ?>">
-                                <input type="hidden" name="heure" value="<?= date('Y-m-d H:i:s') ?>">
-
-
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    <?php else: ?>
-        <p>Aucune séance trouvée.</p>
-    <?php endif; ?>
+    <table id="tableSeances" border="1" cellpadding="5">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Heure Début</th>
+                <th>Heure Fin</th>
+                <th>Commentaire</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rempli dynamiquement en JS -->
+        </tbody>
+    </table>
 
     <?php
     // -------------------------------
