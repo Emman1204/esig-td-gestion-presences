@@ -4,7 +4,7 @@ require_once CORE_PATH . '/Controller.php';
 require_once BASE_PATH . '/config/database.php';
 require_once APP_PATH . '/models/Seance.php';
 
-
+// ⚠️ Protection des accès : seuls les élèves
 if (empty($_SESSION['user']) || $_SESSION['user']['role'] !== 'eleve') {
     header('Location: /login');
     exit;
@@ -22,10 +22,10 @@ class EleveController extends Controller
         $pdo = Database::getInstance();
         $seanceModel = new Seance($pdo);
 
-        // ⚠️ Pour l’instant on simule un élève connecté
-        $eleveId = 1;
+        // Élève connecté
+        $eleveId = $_SESSION['user']['id'];
 
-        // On récupère la séance du jour de l'élève
+        // ⚠️ Pour affichage initial du bouton, on peut récupérer la dernière séance du jour
         $seance = $seanceModel->findTodayByEleve($eleveId);
 
         $this->render('home/eleve', [
@@ -34,8 +34,8 @@ class EleveController extends Controller
     }
 
     /**
-     * Action AJAX : clic sur le bouton Départ / Fin
-     * (sera appelée sans rechargement de page)
+     * ⚠️ Ancienne méthode (POST classique)
+     * On ne la touche pas → fonctionne déjà
      */
     public function presence()
     {
@@ -56,6 +56,96 @@ class EleveController extends Controller
         echo json_encode([
             'success' => $ok,
             'heure'   => $heure
+        ]);
+    }
+
+    /**
+     * ✅ MÉTHODE AJAX (JSON) pour Départ / Fin
+     * - Permet plusieurs départs/fins dans la même journée
+     */
+    public function marquerPresence()
+    {
+        header('Content-Type: application/json');
+
+        // -------------------------------
+        // Récupération des données JSON depuis JS
+        // -------------------------------
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $action   = $input['action'] ?? null;
+        $heure    = $input['heure'] ?? null;
+        $seanceId = (int)($input['seanceId'] ?? 0);
+
+        if (!$action || !$heure) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Données manquantes'
+            ]);
+            exit;
+        }
+
+        $pdo = Database::getInstance();
+        $seanceModel = new Seance($pdo);
+
+        $eleveId = $_SESSION['user']['id'];
+
+        // =====================================
+        // CAS 1 : Départ
+        // - À chaque départ, créer une nouvelle séance
+        // - Retourner le nouvel ID pour que le JS l'utilise pour la fin
+        // =====================================
+        if ($action === 'depart') {
+
+            // 🔹 Création d'une nouvelle séance pour ce départ
+            $seanceId = $seanceModel->creerSeance($eleveId, date('Y-m-d'));
+
+            if (!$seanceId) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Création de séance impossible'
+                ]);
+                exit;
+            }
+
+            // 🔹 Marquer l'heure de début
+            $success = $seanceModel->updateHeureDebut($seanceId, $heure);
+
+            echo json_encode([
+                'status'   => $success ? 'success' : 'error',
+                'seanceId' => $seanceId
+            ]);
+            exit;
+        }
+
+        // =====================================
+        // CAS 2 : Fin
+        // - Utiliser le seanceId reçu du dernier départ
+        // =====================================
+        if ($action === 'fin') {
+
+            if ($seanceId <= 0) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Séance invalide'
+                ]);
+                exit;
+            }
+
+            // 🔹 Marquer l'heure de fin sur la séance correspondante
+            $success = $seanceModel->updateHeureFin($seanceId, $heure);
+
+            echo json_encode([
+                'status' => $success ? 'success' : 'error'
+            ]);
+            exit;
+        }
+
+        // =====================================
+        // Sécurité : action inconnue
+        // =====================================
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Action inconnue'
         ]);
     }
 }
