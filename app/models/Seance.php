@@ -212,6 +212,49 @@ class Seance
 
         return false;
     }
+    // public function marquerDepart($seanceId, $heure)
+    // {
+    //     $sql = "INSERT INTO SPP_SEANCE (SPP_SEAN_ID, SPP_SEAN_HEURE_DEB) VALUES (:id, :heure)";
+    //     $stmt = $this->db->prepare($sql);
+    //     return $stmt->execute([
+    //         ':id' => $seanceId,
+    //         ':heure' => $heure
+    //     ]);
+    // }
+
+    public function marquerFin($seanceId, $heure)
+    {
+        $sql = "UPDATE SPP_SEANCE SET SPP_SEAN_HEURE_FIN = :heure WHERE SPP_SEAN_ID = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':id' => $seanceId,
+            ':heure' => $heure
+        ]);
+    }
+
+    /**
+     * Crée une nouvelle séance pour un élève à une date donnée
+     *
+     * @param int $eleveId  ID de l'élève
+     * @param string $date Date de la séance (YYYY-MM-DD)
+     * @return int ID de la séance créée
+     */
+    public function creerSeance(int $eleveId, string $date): int
+    {
+        $sql = "
+        INSERT INTO SPP_SEANCE (SPP_UTIL_ID, SPP_SEAN_DATE)
+        VALUES (:eleveId, :date)
+    ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            ':eleveId' => $eleveId,
+            ':date'    => $date
+        ]);
+
+        // ✅ CECI est l'ID réel en base
+        return (int) $this->db->lastInsertId();
+    }
 }
 
 /*

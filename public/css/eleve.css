@@ -2,38 +2,33 @@ body {
     margin: 0;
     height: 100vh;
 }
-
+body {
+    background-color: #0b3d91; /* bleu foncé */
+    color: #ffffff; /* facultatif : texte blanc pour contraster */
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
 .presence-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    text-align: center;
+    margin-top: 50px;
 }
 
-.presence-btn {
-    width: 250px;
-    height: 250px;
-    border-radius: 50%;
+#btnPresence {
     font-size: 2rem;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    background-color: #2ecc71;
+    padding: 20px 40px;
+    border-radius: 10px;
+    background-color: #4CAF50;
     color: white;
-    transition: background-color 0.3s;
+    cursor: pointer;
 }
 
-.presence-btn.fin {
-    background-color: #e74c3c;
-}
-
-.timer {
+#timer {
     margin-top: 20px;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 
 .hidden {
     display: none;
 }
-    

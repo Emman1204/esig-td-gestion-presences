@@ -1,5 +1,5 @@
-    <!-- Premier clic : marque le départ
-    <button type="submit" id="btnPresence" name="btnPresence" value="marquer">Départ</button>
+    <!-- Premier clic : marque le départ -->
+    <!-- <button type="submit" id="btnPresence" name="btnPresence" value="marquer">Départ</button>
 
     <script>
         var btnPresence = document.getElementById("btnPresence");
@@ -10,24 +10,26 @@
                 this.textContent = "Départ";
         });
     </script> -->
+    <h1>Ma présence</h1>
 
-<h1>Ma présence</h1>
-
-<div class="presence-container">
-    <button id="presenceBtn"
-            class="presence-btn"
-            data-seance-id="<?= $seance['SPP_SEAN_ID'] ?>"
-            data-state="<?= empty($seance['SPP_SEAN_HEURE_DEB']) ? 'start' : 'end' ?>">
-        <?= empty($seance['SPP_SEAN_HEURE_DEB']) ? 'Départ' : 'Fin' ?>
-    </button>
-
-    <div id="timer" class="timer hidden">
-        00:00:00
+    <div class="presence-container">
+        <!-- 
+        data-seance-id vaut soit l'ID existant de la séance du jour,
+        soit 0 si aucune séance n'existe encore
+    -->
+        <button type="button"
+            id="btnPresence"
+            name="btnPresence"
+            data-seance-id="<?= $seance['SPP_SEAN_ID'] ?? 0 ?>">
+            Départ
+        </button>
+        <div id="timer" class="timer hidden">00:00:00</div>
     </div>
-</div>
 
-<link rel="stylesheet" href="/public/css/eleve.css">
-<script src="/public/js/presence.js" defer></script>
+
+
+    <link rel="stylesheet" href="/public/css/eleve.css">
+    <script src="../../../public/js/presence.js" defer></script>
 
 
     <h1>Mes Séances</h1>

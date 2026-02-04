@@ -24,13 +24,13 @@ class Router
         // Supprimer index.php s'il est présent
         $uri = str_replace('/index.php', '', $uri);
 
-        // Normalisation finale
+        // Normalisation finale : supprimer les slashs début/fin
         $uri = trim($uri, '/');
 
         // -------------------------------
         // ROUTE PAR DÉFAUT
         // -------------------------------
-        // Si aucune route → page de login
+        // Si aucune route → redirection vers la page de login
         if ($uri === '') {
             header('Location: /public/login');
             exit;
@@ -64,15 +64,26 @@ class Router
         // -------------------------------
         // ESPACE ÉLÈVE
         // -------------------------------
+
+        // Page principale de l'élève
         if ($uri === 'eleve') {
             require_once APP_PATH . '/controllers/EleveController.php';
             (new EleveController())->index();
             return;
         }
 
+        // AJAX : action Départ / Fin pour marquer la présence
+        if ($uri === 'eleve/marquerPresence') {
+            require_once APP_PATH . '/controllers/EleveController.php';
+            (new EleveController())->marquerPresence();
+            return;
+        }
+
         // -------------------------------
         // ESPACE ENSEIGNANT
         // -------------------------------
+
+        // Page principale de l'enseignant
         if ($uri === 'enseignant') {
             require_once APP_PATH . '/controllers/EnseignantController.php';
             (new EnseignantController())->index();
