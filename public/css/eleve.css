@@ -114,7 +114,7 @@ h1 {
 /* Colonne Temps de présence */
 #tableSeances td:nth-child(4) {
     font-weight: bold;
-    color: #0b3d91;
+    /* color: #0b3d91; */
 }
 
 /* Bouton Modifier */
@@ -122,13 +122,51 @@ h1 {
     padding: 5px 10px;
     border-radius: 6px;
     border: none;
-    background-color: #2196F3;
-    color: white;
+    /* background-color: #2196F3; */
+    /* color: white; */
     cursor: pointer;
     transition: all 0.2s;
+    background: none;
 }
-
+/* 
 #tableSeances button:hover {
     background-color: #1976D2;
     transform: translateY(-1px);
+} */
+
+/* Colonne commentaire dans le tableau */
+/* #tableSeances td:nth-child(5) {
+    max-width: 250px;
+    word-wrap: break-word;
+    vertical-align: top;
+} */
+
+/* Formulaire dans la cellule commentaire */
+#tableSeances td form {
+    display: flex;
+    flex-direction: column;
+    /* textarea au-dessus du bouton */
+    gap: 5px;
+    /* espace entre textarea et bouton */
+    width: 100%;
+    margin: 0;
+}
+
+#tableSeances td form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    /* pour inclure padding/border dans la largeur */
+    resize: vertical;
+    /* l'élève peut redimensionner verticalement */
+}
+
+#tableSeances td form button {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.comment-display {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
 }

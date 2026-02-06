@@ -14,28 +14,30 @@ class EleveController extends Controller
 {
     /**
      * Page principale de l'élève
-     * - Affiche la séance du jour
-     * - Affiche le bouton Départ / Fin
      */
     public function index()
     {
         $pdo = Database::getInstance();
         $seanceModel = new Seance($pdo);
 
-        // Élève connecté
         $eleveId = $_SESSION['user']['id'];
 
-        // ⚠️ Pour affichage initial du bouton, on peut récupérer la dernière séance du jour
-        $seance = $seanceModel->findTodayByEleve($eleveId);
+        // ⚡ Récupérer la séance du jour (si l'élève a déjà pointé départ ou fin)
+        $seanceDuJour = $seanceModel->findTodayByEleve($eleveId);
 
+        // ⚡ Récupérer la séance en cours (si départ marqué mais pas fin)
+        $seanceEnCours = $seanceModel->getCurrentSeance($eleveId);
+
+        // ⚡ Passer les deux informations à la vue
         $this->render('home/eleve', [
-            'seance' => $seance
+            'seanceDuJour' => $seanceDuJour,
+            'seanceEnCours' => $seanceEnCours
         ]);
     }
 
+
     /**
-     * ⚠️ Ancienne méthode (POST classique)
-     * On ne la touche pas → fonctionne déjà
+     * Ancienne méthode (ne pas toucher)
      */
     public function presence()
     {
@@ -60,15 +62,14 @@ class EleveController extends Controller
     }
 
     /**
-     * ✅ MÉTHODE AJAX (JSON) pour Départ / Fin
-     * - Permet plusieurs départs/fins dans la même journée
+     * AJAX : Départ / Fin
      */
     public function marquerPresence()
     {
         header('Content-Type: application/json');
 
         // -------------------------------
-        // Récupération des données JSON depuis JS
+        // Récupération des données JSON depuis le front
         // -------------------------------
         $input = json_decode(file_get_contents('php://input'), true);
 
@@ -77,32 +78,36 @@ class EleveController extends Controller
         $seanceId = (int)($input['seanceId'] ?? 0);
 
         if (!$action || !$heure) {
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Données manquantes'
-            ]);
+            echo json_encode(['status' => 'error', 'message' => 'Données manquantes']);
             exit;
         }
 
         $pdo = Database::getInstance();
         $seanceModel = new Seance($pdo);
-
         $eleveId = $_SESSION['user']['id'];
 
         // =====================================
         // CAS 1 : Départ
-        // - À chaque départ, créer une nouvelle séance
-        // - Retourner le nouvel ID pour que le JS l'utilise pour la fin
         // =====================================
         if ($action === 'depart') {
+            // ⚡ Vérifier si une séance en cours existe déjà
+            $current = $seanceModel->getCurrentSeance($eleveId);
+            if ($current) {
+                echo json_encode([
+                    'status'    => 'error',
+                    'message'   => 'Une séance est déjà en cours',
+                    'seanceId'  => $current['SPP_SEAN_ID']
+                ]);
+                exit;
+            }
 
-            // 🔹 Création d'une nouvelle séance pour ce départ
+            // 🔹 Créer une nouvelle séance pour ce départ
             $seanceId = $seanceModel->creerSeance($eleveId, date('Y-m-d'));
 
             if (!$seanceId) {
                 echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Création de séance impossible'
+                    'status'  => 'error',
+                    'message' => 'Impossible de créer une séance'
                 ]);
                 exit;
             }
@@ -119,19 +124,16 @@ class EleveController extends Controller
 
         // =====================================
         // CAS 2 : Fin
-        // - Utiliser le seanceId reçu du dernier départ
         // =====================================
         if ($action === 'fin') {
-
             if ($seanceId <= 0) {
                 echo json_encode([
-                    'status' => 'error',
+                    'status'  => 'error',
                     'message' => 'Séance invalide'
                 ]);
                 exit;
             }
 
-            // 🔹 Marquer l'heure de fin sur la séance correspondante
             $success = $seanceModel->updateHeureFin($seanceId, $heure);
 
             echo json_encode([
@@ -144,12 +146,14 @@ class EleveController extends Controller
         // Sécurité : action inconnue
         // =====================================
         echo json_encode([
-            'status' => 'error',
+            'status'  => 'error',
             'message' => 'Action inconnue'
         ]);
     }
+
+
     /**
-     * ✅ AJAX : récupérer toutes les séances de l'élève
+     * AJAX : récupérer toutes les séances
      */
     public function getSeances()
     {
@@ -159,7 +163,6 @@ class EleveController extends Controller
         $seanceModel = new Seance($pdo);
 
         $eleveId = $_SESSION['user']['id'];
-
         $seances = $seanceModel->findByEleve($eleveId);
 
         echo json_encode([
@@ -167,5 +170,56 @@ class EleveController extends Controller
             'seances' => $seances
         ]);
         exit;
+    }
+
+    // ===================================================
+    // 🆕 NOUVELLE MÉTHODE : réception du commentaire
+    // ===================================================
+    public function commentaire()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /eleve');
+            exit;
+        }
+
+        $seanceId   = (int)($_POST['seance_id'] ?? 0);
+        $commentaire = trim($_POST['commentaire'] ?? '');
+
+        if ($seanceId <= 0 || $commentaire === '') {
+            header('Location: /eleve');
+            exit;
+        }
+
+        $this->updateCommentaire($seanceId, $commentaire);
+
+        header('Location: /eleve');
+        exit;
+    }
+
+    // ===================================================
+    // 🆕 AJAX : mise à jour du commentaire
+    // ===================================================
+    public function updateCommentaire()
+    {
+        header('Content-Type: application/json');
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $seanceId = (int)($input['seanceId'] ?? 0);
+        $commentaire = trim($input['commentaire'] ?? '');
+
+        if ($seanceId <= 0 || $commentaire === '') {
+            echo json_encode(['status' => 'error', 'message' => 'Données manquantes']);
+            return;
+        }
+
+        $pdo = Database::getInstance();
+        $seanceModel = new Seance($pdo);
+
+        $success = $seanceModel->updateCommentaire($seanceId, $commentaire);
+
+        echo json_encode([
+            'status' => $success ? 'success' : 'error'
+        ]);
     }
 }

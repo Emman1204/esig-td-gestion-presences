@@ -255,6 +255,42 @@ class Seance
         // ✅ CECI est l'ID réel en base
         return (int) $this->db->lastInsertId();
     }
+    /**
+     * Met à jour le commentaire d'une séance
+     */
+    public function updateCommentaire(int $seanceId, string $commentaire): bool
+    {
+        $sql = "
+        UPDATE spp_seance
+        SET SPP_SEAN_COMM = :commentaire
+        WHERE SPP_SEAN_ID = :seanceId
+    ";
+
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute([
+            ':commentaire' => $commentaire,
+            ':seanceId'    => $seanceId
+        ]);
+    }
+    /**
+     * Récupérer la séance en cours pour un élève
+     */
+    public function getCurrentSeance($eleveId)
+    {
+        $stmt = $this->db->prepare("
+        SELECT * 
+        FROM SPP_SEANCE 
+        WHERE SPP_UTIL_ID = :eleveId 
+          AND SPP_SEAN_DATE = CURDATE() 
+          AND SPP_SEAN_HEURE_DEB IS NOT NULL
+          AND SPP_SEAN_HEURE_FIN IS NULL
+        ORDER BY SPP_SEAN_ID DESC 
+        LIMIT 1
+    ");
+        $stmt->execute(['eleveId' => $eleveId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
 
 /*

@@ -1,20 +1,31 @@
-<h1>Connexion</h1>
+<section>
+    <link rel="stylesheet" href="/public/css/login.css">
 
-<?php if (!empty($error)): ?>
-    <p style="color:red"><?= htmlspecialchars($error) ?></p>
-<?php endif; ?>
+    <div class="login-container">
 
-<form method="post" action="public/authenticate">
-    <div>
-        <label>Email</label><br>
-        <input type="email" name="email" required>
+        <h1>Connexion</h1>
+
+        <?php if (!empty($error)): ?>
+            <div class="error">
+                <?= htmlspecialchars($error) ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="post" action="public/authenticate">
+
+            <div>
+                <label>Email</label>
+                <input type="email" name="email" required>
+            </div>
+
+            <div>
+                <label>Mot de passe</label>
+                <input type="password" name="password" required>
+            </div>
+
+            <button type="submit">Se connecter</button>
+
+        </form>
+
     </div>
-
-    <div>
-        <label>Mot de passe</label><br>
-        <input type="password" name="password" required>
-    </div>
-
-    <br>
-    <button type="submit">Se connecter</button>
-</form>
+</section>

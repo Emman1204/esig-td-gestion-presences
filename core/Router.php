@@ -30,7 +30,6 @@ class Router
         // -------------------------------
         // ROUTE PAR DÉFAUT
         // -------------------------------
-        // Si aucune route → redirection vers la page de login
         if ($uri === '') {
             header('Location: /public/login');
             exit;
@@ -39,22 +38,18 @@ class Router
         // -------------------------------
         // AUTHENTIFICATION
         // -------------------------------
-
-        // Page de connexion
         if ($uri === 'login') {
             require_once APP_PATH . '/controllers/AuthController.php';
             (new AuthController())->login();
             return;
         }
 
-        // Traitement du formulaire de connexion (POST)
         if ($uri === 'authenticate') {
             require_once APP_PATH . '/controllers/AuthController.php';
             (new AuthController())->authenticate();
             return;
         }
 
-        // Déconnexion
         if ($uri === 'logout') {
             require_once APP_PATH . '/controllers/AuthController.php';
             (new AuthController())->logout();
@@ -64,22 +59,18 @@ class Router
         // -------------------------------
         // ESPACE ÉLÈVE
         // -------------------------------
-
-        // Page principale de l'élève
         if ($uri === 'eleve') {
             require_once APP_PATH . '/controllers/EleveController.php';
             (new EleveController())->index();
             return;
         }
 
-        // AJAX : action Départ / Fin pour marquer la présence
         if ($uri === 'eleve/marquerPresence') {
             require_once APP_PATH . '/controllers/EleveController.php';
             (new EleveController())->marquerPresence();
             return;
         }
 
-        // ✅ AJAX : récupérer les séances de l'élève
         if ($uri === 'eleve/getSeances') {
             require_once APP_PATH . '/controllers/EleveController.php';
             (new EleveController())->getSeances();
@@ -87,10 +78,17 @@ class Router
         }
 
         // -------------------------------
+        // AJAX : enregistrer un commentaire pour une séance
+        // -------------------------------
+        if ($uri === 'eleve/commentaire') {
+            require_once APP_PATH . '/controllers/EleveController.php';
+            (new EleveController())->updateCommentaire();
+            return;
+        }
+
+        // -------------------------------
         // ESPACE ENSEIGNANT
         // -------------------------------
-
-        // Page principale de l'enseignant
         if ($uri === 'enseignant') {
             require_once APP_PATH . '/controllers/EnseignantController.php';
             (new EnseignantController())->index();

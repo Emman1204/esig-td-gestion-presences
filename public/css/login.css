@@ -1,0 +1,88 @@
+/* -------------------------------
+   Page Login
+---------------------------------*/
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0b3d91, #062a63);
+    /* display: flex;
+    justify-content: center;
+    align-items: center; */
+}
+
+/* Carte de connexion */
+.login-container {
+    background-color: #ffffff;
+    color: #333;
+    padding: 30px 40px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Titre */
+.login-container h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #0b3d91;
+}
+
+/* Messages d’erreur */
+.login-container .error {
+    background-color: #fddede;
+    color: #b00020;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Champs */
+.login-container label {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.login-container input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+.login-container input:focus {
+    outline: none;
+    border-color: #0b3d91;
+}
+
+/* Bouton */
+.login-container button {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    background-color: #0b3d91;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-container button:hover {
+    background-color: #062a63;
+}
+
+section {
+    padding: 40px 0;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+}

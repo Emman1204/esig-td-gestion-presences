@@ -1,99 +1,97 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // -------------------------------
-    // RÉCUPÉRATION DES ÉLÉMENTS
-    // -------------------------------
     const btn = document.getElementById("btnPresence");
     const timerEl = document.getElementById("timer");
 
-    if (!btn) return; // si le bouton n'existe pas, ne rien faire
+    if (!btn) return;
 
-    // -------------------------------
-    // VARIABLES TIMER
-    // -------------------------------
-    let timer = null;
-    let seconds = 0;
-    let etat = "depart"; // État actuel du bouton : "depart" ou "fin"
-    let currentSeanceId = parseInt(btn.dataset.seanceId) || 0; // ID réel de la séance
+    let timerLive = null; // 🔹 Timer live global
+    let etat = "depart";
+    let currentSeanceId = parseInt(btn.dataset.seanceId) || 0;
+    const heureDebut = btn.dataset.heureDeb || null;
 
-    // -------------------------------
-    // FONCTIONS TIMER
-    // -------------------------------
+    // Déterminer l'état initial
+    if (currentSeanceId > 0) {
+        etat = "fin";
+        btn.textContent = "Fin";
+        if (heureDebut) startTimerLive(heureDebut);
+    }
+
+    // Formater le temps HH:MM:SS
     function formatTime(sec) {
-        const h = String(Math.floor(sec / 3600)).padStart(2, '0');
-        const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
-        const s = String(sec % 60).padStart(2, '0');
+        const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+        const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+        const s = String(sec % 60).padStart(2, "0");
         return `${h}:${m}:${s}`;
     }
 
-    function startTimer() {
-        timerEl.classList.remove("hidden");
-        timer = setInterval(() => {
-            seconds++;
-            timerEl.textContent = formatTime(seconds);
-        }, 1000);
+    // 🔹 Démarrer le timer live à partir de l'heure de départ
+    function startTimerLive(heureDeb) {
+        if (!heureDeb) return;
+
+        clearInterval(timerLive);
+
+        function updateTimer() {
+            const [h, m, s] = heureDeb.split(":").map(Number);
+            const now = new Date();
+            const debut = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, s);
+            let diff = Math.floor((now - debut) / 1000);
+            if (diff < 0) diff = 0;
+            timerEl.textContent = formatTime(diff);
+            timerEl.classList.remove("hidden");
+        }
+
+        updateTimer();
+        timerLive = setInterval(updateTimer, 1000);
     }
 
+    // 🔹 Arrêter complètement le timer
     function stopTimer() {
-        clearInterval(timer);
-        seconds = 0;
+        clearInterval(timerLive); // Arrêt réel
+        timerLive = null;         // Reset variable
         timerEl.textContent = "00:00:00";
         timerEl.classList.add("hidden");
     }
 
-    // -------------------------------
-    // ÉCOUTEUR SUR LE BOUTON
-    // -------------------------------
     btn.addEventListener("click", () => {
-        // -------------------------------
-        // Déterminer l'action à envoyer
-        // -------------------------------
         const action = etat === "depart" ? "depart" : "fin";
+        const heure = new Date().toLocaleTimeString("fr-FR", { hour12: false });
 
-        // Mise à jour visuelle côté client
-        if (etat === "depart") {
-            btn.textContent = "Fin";
-            etat = "fin";
-            startTimer();
-        } else {
-            btn.textContent = "Départ";
-            etat = "depart";
-            stopTimer();
-        }
-
-        // -------------------------------
-        // AJAX : envoyer la présence au serveur
-        // -------------------------------
-        console.log("Envoi de la présence : seanceId =", currentSeanceId, "action =", action);
         fetch("/public/eleve/marquerPresence", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "same-origin",
-            body: JSON.stringify({
-                seanceId: currentSeanceId, // 0 si séance non créée
-                action: action,
-                // ⚠️ On envoie uniquement l'heure pour le champ TIME
-                heure: new Date().toLocaleTimeString('fr-FR', { hour12: false })
-            })
+            body: JSON.stringify({ seanceId: currentSeanceId, action, heure })
         })
             .then(async res => {
                 const text = await res.text();
                 try {
                     const data = JSON.parse(text);
 
-                    // -------------------------------
-                    // Si le serveur a créé une nouvelle séance, récupérer son ID
-                    // -------------------------------
-                    if (data.status === "success" && data.seanceId) {
-                        currentSeanceId = data.seanceId;
-                        btn.dataset.seanceId = currentSeanceId; // mettre à jour le bouton
-                    }
+                    if (data.status === "success") {
+                        if (data.seanceId) {
+                            currentSeanceId = data.seanceId;
+                            btn.dataset.seanceId = currentSeanceId;
+                            // 🔹 Stocker l'heure de départ uniquement si action depart
+                            if (action === "depart") {
+                                btn.dataset.heureDeb = heure;
+                            }
+                        }
 
-                    // 🔁 RAFRAÎCHIR LE TABLEAU DES SÉANCES
-                    if (window.reloadSeances) {
-                        window.reloadSeances();
-                    }
+                        if (action === "depart") {
+                            etat = "fin";
+                            btn.textContent = "Fin";
+                            startTimerLive(heure);
+                        } else {
+                            etat = "depart";
+                            btn.textContent = "Départ";
+                            stopTimer(); // 🔹 Arrêt réel du timer
+                            btn.dataset.heureDeb = ""; // 🔹 Réinitialiser pour que seance.js ne redémarre pas le timer
+                        }
 
-                    console.log(`${action.charAt(0).toUpperCase() + action.slice(1)} enregistré :`, data);
+                        if (window.reloadSeances) window.reloadSeances();
+                    } else {
+                        alert(data.message || "Erreur lors du pointage");
+                    }
                 } catch (e) {
                     console.error("Réponse non JSON :", text);
                 }
