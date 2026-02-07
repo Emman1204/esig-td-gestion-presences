@@ -86,3 +86,6 @@ section {
     display: flex;
     justify-content: center;
 }
+body{
+    height: 100%;
+}

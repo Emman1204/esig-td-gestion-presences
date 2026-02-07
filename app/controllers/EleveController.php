@@ -35,7 +35,6 @@ class EleveController extends Controller
         ]);
     }
 
-
     /**
      * Ancienne méthode (ne pas toucher)
      */

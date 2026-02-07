@@ -11,6 +11,11 @@ body {
     color: #ffffff;
 }
 
+#btnPresence.fin {
+    background-color: #f44336; /* rouge fin */
+}
+
+
 /* Conteneur principal */
 .main-container {
     max-width: 1000px;

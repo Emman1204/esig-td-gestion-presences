@@ -79,32 +79,4 @@
         </table>
 
     </div>
-
-    <?php
-    // -------------------------------
-    // Gestion temporaire du clic du bouton
-    // ⚠️ Pour l’instant on simule simplement l’action
-    // -------------------------------
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['seanId'], $_POST['heure'])) {
-        $seanId = $_POST['seanId'];
-        $heure = $_POST['heure'];
-
-        foreach ($seances as $s) {
-            if ($s['SPP_SEAN_ID'] == $seanId) {
-                $seance = $s;
-                break;
-            }
-        }
-
-        if (!empty($seance)) {
-            if (empty($seance['SPP_SEAN_HEURE_DEB'])) {
-                echo "<pre>💡 Départ marqué pour la séance ID={$seanId} à {$heure}</pre>";
-            } elseif (empty($seance['SPP_SEAN_HEURE_FIN'])) {
-                echo "<pre>💡 Fin marquée pour la séance ID={$seanId} à {$heure}</pre>";
-            } else {
-                echo "<pre>✅ Présence déjà terminée pour cette séance.</pre>";
-            }
-        }
-    }
-    ?>
 </section>

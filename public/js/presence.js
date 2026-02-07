@@ -13,8 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentSeanceId > 0) {
         etat = "fin";
         btn.textContent = "Fin";
+        btn.classList.add("fin"); // 🔴
         if (heureDebut) startTimerLive(heureDebut);
     }
+
 
     // Formater le temps HH:MM:SS
     function formatTime(sec) {
@@ -80,11 +82,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (action === "depart") {
                             etat = "fin";
                             btn.textContent = "Fin";
+                            btn.classList.add("fin"); // 🔴 bouton rouge
                             startTimerLive(heure);
-                        } else {
+                        }
+                        else {
                             etat = "depart";
                             btn.textContent = "Départ";
                             stopTimer(); // 🔹 Arrêt réel du timer
+                            btn.classList.remove("fin"); // 🟢 retour au vert
                             btn.dataset.heureDeb = ""; // 🔹 Réinitialiser pour que seance.js ne redémarre pas le timer
                         }
 

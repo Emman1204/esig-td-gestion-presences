@@ -1,0 +1,13 @@
+footer {
+    width: 100%;
+    display: flex;
+    justify-content: center; /* centre horizontalement */
+    padding: 20px 0;
+    background-color: #062a63;
+}
+
+.footer-content {
+    text-align: center; /* centre le texte */
+    font-size: 0.9rem;
+    color: white;
+}
