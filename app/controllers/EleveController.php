@@ -102,7 +102,6 @@ class EleveController extends Controller
 
             // 🔹 Créer une nouvelle séance pour ce départ
             $seanceId = $seanceModel->creerSeance($eleveId, date('Y-m-d'));
-
             if (!$seanceId) {
                 echo json_encode([
                     'status'  => 'error',
@@ -113,6 +112,9 @@ class EleveController extends Controller
 
             // 🔹 Marquer l'heure de début
             $success = $seanceModel->updateHeureDebut($seanceId, $heure);
+
+            // 🔹 Insérer la ligne dans SPP_ENSEI_SEAN pour l'enseignant avec EN ATTENTE
+            $seanceModel->insertEnseignantSeance($seanceId, $eleveId);
 
             echo json_encode([
                 'status'   => $success ? 'success' : 'error',
@@ -149,7 +151,6 @@ class EleveController extends Controller
             'message' => 'Action inconnue'
         ]);
     }
-
 
     /**
      * AJAX : récupérer toutes les séances

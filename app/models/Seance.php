@@ -42,21 +42,78 @@ class Seance
     }
 
     /**
+     * Vérifie et crée les entrées SPP_ENSEI_SEAN pour un enseignant
+     * lorsqu'il récupère les séances de ses élèves.
+     *
+     * @param int $enseignantId
+     * @param array $seances Tableau des séances récupérées
+     */
+
+
+
+    public function insertEnseignantSeance(int $seanceId, int $eleveId)
+    {
+        // On récupère la classe de l'élève
+        $stmtClasse = $this->db->prepare("
+        SELECT classe.SPP_CLASSE_ID, ens.SPP_UTIL_ID AS enseignantId
+        FROM SPP_EST_INSCRIT est
+        JOIN SPP_CLASSE classe ON est.SPP_CLASSE_ID = classe.SPP_CLASSE_ID
+        JOIN SPP_SUPERVISE sup ON sup.SPP_CLASSE_ID = classe.SPP_CLASSE_ID
+        JOIN SPP_ENSEIGNANT ens ON ens.SPP_UTIL_ID = sup.SPP_UTIL_ID
+        WHERE est.SPP_UTIL_ID = :eleveId
+    ");
+        $stmtClasse->bindParam(':eleveId', $eleveId, PDO::PARAM_INT);
+        $stmtClasse->execute();
+        $enseignants = $stmtClasse->fetchAll(PDO::FETCH_ASSOC);
+
+        // Pour chaque enseignant, on crée l'entrée dans SPP_ENSEI_SEAN
+        foreach ($enseignants as $e) {
+            $stmtInsert = $this->db->prepare("
+            INSERT INTO SPP_ENSEI_SEAN (SPP_UTIL_ID, SPP_SEAN_ID, SPP_ENS_SEAN_STATUS)
+            VALUES (:enseignantId, :seanceId, 'EN ATTENTE')
+            ON DUPLICATE KEY UPDATE SPP_ENS_SEAN_STATUS = SPP_ENS_SEAN_STATUS
+        ");
+            $stmtInsert->bindParam(':enseignantId', $e['enseignantId'], PDO::PARAM_INT);
+            $stmtInsert->bindParam(':seanceId', $seanceId, PDO::PARAM_INT);
+            $stmtInsert->execute();
+        }
+    }
+
+
+    /**
      * Récupérer les séances d’un enseignant
      */
     public function findByEnseignant(int $enseignantId): array
     {
-        $stmt = $this->db->prepare(
-            "SELECT s.*
-             FROM SPP_SEANCE s
-             JOIN SPP_ENSEI_SEAN es ON s.SPP_SEAN_ID = es.SPP_SEAN_ID
-             WHERE es.SPP_UTIL_ID = :enseignantId"
-        );
-        $stmt->bindParam(':enseignantId', $enseignantId, PDO::PARAM_INT);
-        $stmt->execute();
+        $sql = "
+    SELECT
+        s.SPP_SEAN_ID,
+        s.SPP_SEAN_DATE,
+        s.SPP_SEAN_HEURE_DEB,
+        s.SPP_SEAN_HEURE_FIN,
+        e.SPP_UTIL_ID AS eleve_id,
+        e.SPP_UTIL_NOM AS eleve_nom,
+        e.SPP_UTIL_PRENOM AS eleve_prenom,
+        c.SPP_CLASSE_ID,
+        c.SPP_CLASSE_NOM,
+        COALESCE(es.SPP_ENS_SEAN_STATUS, 'EN ATTENTE') AS SPP_ENS_SEAN_STATUS
+    FROM SPP_SEANCE s
+    JOIN SPP_ELEVE e ON s.SPP_UTIL_ID = e.SPP_UTIL_ID
+    JOIN SPP_EST_INSCRIT ei ON e.SPP_UTIL_ID = ei.SPP_UTIL_ID
+    JOIN SPP_CLASSE c ON ei.SPP_CLASSE_ID = c.SPP_CLASSE_ID
+    JOIN SPP_SUPERVISE sup ON c.SPP_CLASSE_ID = sup.SPP_CLASSE_ID
+    LEFT JOIN SPP_ENSEI_SEAN es 
+        ON s.SPP_SEAN_ID = es.SPP_SEAN_ID AND sup.SPP_UTIL_ID = es.SPP_UTIL_ID
+    WHERE sup.SPP_UTIL_ID = :enseignantId
+    ORDER BY s.SPP_SEAN_DATE DESC, s.SPP_SEAN_HEURE_DEB ASC
+    ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['enseignantId' => $enseignantId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 
     /**
      * Récupérer la séance du jour pour un élève
@@ -160,9 +217,60 @@ class Seance
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':heureDebut', $heureDebut);
         $stmt->bindParam(':seanId', $seanId, PDO::PARAM_INT);
+        $success = $stmt->execute();
+        if ($success) {
+            // 🔥 C’EST ICI QU’ON LIE LA SÉANCE AUX ENSEIGNANTS
+            $this->insererEnseignantsSeance($seanId);
+        }
 
         return $stmt->execute();
     }
+    private function insererEnseignantsSeance(int $seanceId): void
+    {
+        $sql = "
+        INSERT INTO SPP_ENSEI_SEAN (SPP_UTIL_ID, SPP_SEAN_ID, SPP_ENS_SEAN_STATUS)
+        SELECT 
+            sup.SPP_UTIL_ID,
+            :seanceId,
+            'EN ATTENTE'
+        FROM SPP_SEANCE s
+        JOIN SPP_EST_INSCRIT ei ON ei.SPP_UTIL_ID = s.SPP_UTIL_ID
+        JOIN SPP_SUPERVISE sup ON sup.SPP_CLASSE_ID = ei.SPP_CLASSE_ID
+        WHERE s.SPP_SEAN_ID = :seanceId
+        ON DUPLICATE KEY UPDATE SPP_ENS_SEAN_STATUS = SPP_ENS_SEAN_STATUS
+    ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['seanceId' => $seanceId]);
+    }
+    private function insererSeancePourEnseignants(int $seanceId, int $eleveId): void
+    {
+        $sql = "
+        SELECT sup.SPP_UTIL_ID AS enseignant_id
+        FROM SPP_EST_INSCRIT ei
+        JOIN SPP_SUPERVISE sup ON sup.SPP_CLASSE_ID = ei.SPP_CLASSE_ID
+        WHERE ei.SPP_UTIL_ID = :eleveId
+    ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['eleveId' => $eleveId]);
+        $enseignants = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($enseignants as $e) {
+            $insert = $this->db->prepare("
+            INSERT INTO SPP_ENSEI_SEAN (SPP_UTIL_ID, SPP_SEAN_ID, SPP_ENS_SEAN_STATUS)
+            VALUES (:enseignantId, :seanceId, 'EN ATTENTE')
+            ON DUPLICATE KEY UPDATE SPP_ENS_SEAN_STATUS = SPP_ENS_SEAN_STATUS
+        ");
+
+            $insert->execute([
+                'enseignantId' => $e['enseignant_id'],
+                'seanceId'     => $seanceId
+            ]);
+        }
+    }
+
+
 
     /**
      * DEUXIÈME CLIC → Fin
@@ -201,10 +309,26 @@ class Seance
         if (!$seance) {
             return false;
         }
-
         if (empty($seance['SPP_SEAN_HEURE_DEB'])) {
-            return $this->updateHeureDebut($seanId, $heure);
+
+            // 1️⃣ Marquer l'heure de début
+            $ok = $this->updateHeureDebut($seanId, $heure);
+
+            if ($ok) {
+                // 2️⃣ Récupérer l'élève lié à la séance
+                $stmt = $this->db->prepare("
+            SELECT SPP_UTIL_ID FROM SPP_SEANCE WHERE SPP_SEAN_ID = :seanId
+        ");
+                $stmt->execute(['seanId' => $seanId]);
+                $eleveId = (int) $stmt->fetchColumn();
+
+                // 3️⃣ Créer l'entrée EN ATTENTE pour l'enseignant
+                $this->insererSeancePourEnseignants($seanId, $eleveId);
+            }
+
+            return $ok;
         }
+
 
         if (empty($seance['SPP_SEAN_HEURE_FIN'])) {
             return $this->updateHeureFin($seanId, $heure);
@@ -291,8 +415,9 @@ class Seance
         $stmt->execute(['eleveId' => $eleveId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-        // Récupérer toutes les séances supervisées par un enseignant
-    public static function getSeancesByEnseignant($enseignantId) {
+    // Récupérer toutes les séances supervisées par un enseignant
+    public static function getSeancesByEnseignant($enseignantId)
+    {
         $db = Database::getInstance();
         $stmt = $db->prepare("
             SELECT 
@@ -321,7 +446,8 @@ class Seance
     }
 
     // Mettre à jour le statut d'une présence
-    public static function updateStatutPresence($eleveId, $seanceId, $status) {
+    public static function updateStatutPresence($eleveId, $seanceId, $status)
+    {
         $db = Database::getInstance();
         $stmt = $db->prepare("
             INSERT INTO SPP_ENSEI_SEAN (SPP_UTIL_ID, SPP_SEAN_ID, SPP_ENS_SEAN_STATUS)
@@ -335,16 +461,3 @@ class Seance
         ]);
     }
 }
-
-/*
---------------------------------------------------
-NOTES PÉDAGOGIQUES IMPORTANTES
---------------------------------------------------
-✔ SPP_SEANCE = table de présence
-✔ 1 clic = 1 action claire
-✔ updateHeureDebut() / updateHeureFin() = idéal pour AJAX
-✔ marquerPresence() conservée pour compatibilité
-✔ Le Controller décide QUOI appeler
-✔ La Vue ne contient AUCUNE logique métier
---------------------------------------------------
-*/

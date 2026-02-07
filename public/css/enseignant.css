@@ -1,0 +1,130 @@
+/* ===============================
+   Styles généraux
+   =============================== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.main-container {
+    max-width: 1000px;
+    margin: 30px auto;
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.main-container h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #1a73e8;
+}
+
+.main-container p {
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* ===============================
+   Tableau principal des séances
+   =============================== */
+#tableSeances {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#tableSeances th,
+#tableSeances td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+#tableSeances th {
+    background-color: #1a73e8;
+    color: #fff;
+    font-weight: bold;
+}
+
+#tableSeances tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* ===============================
+   Sous-table des élèves
+   =============================== */
+#tableSeances table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 5px;
+}
+
+#tableSeances table th,
+#tableSeances table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+
+#tableSeances table th {
+    background-color: #eee;
+    font-weight: bold;
+}
+
+/* ===============================
+   Select et bouton
+   =============================== */
+.status-eleve {
+    padding: 5px 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    min-width: 120px;
+}
+
+.btn-valider-status {
+    padding: 5px 10px;
+    background-color: #1a73e8;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-valider-status:hover {
+    background-color: #155ab6;
+}
+
+/* ===============================
+   Responsive
+   =============================== */
+@media (max-width: 768px) {
+    .main-container {
+        padding: 15px;
+    }
+
+    #tableSeances th,
+    #tableSeances td,
+    #tableSeances table th,
+    #tableSeances table td {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .status-eleve {
+        font-size: 12px;
+        min-width: 100px;
+    }
+
+    .btn-valider-status {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+}
