@@ -1,0 +1,38 @@
+
+/* Reset de base et layout */
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Wrapper général pour que le footer reste en bas */
+body > .page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.page-wrapper > .main-container {
+    flex: 1;
+}
+
+/* Liens par défaut */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Footer */
+footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+    background-color: #062a63;
+}
+
+.footer-content {
+    text-align: center;
+    font-size: 0.9rem;
+}

@@ -1,130 +1,141 @@
-/* ===============================
-   Styles généraux
-   =============================== */
+/* ================================
+   GLOBAL
+================================ */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f5f5;
-    color: #333;
-    margin: 0;
+    background-color: #f4f6f9;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* ================================
+   CONTAINER
+================================ */
+.main-container {
+    width: 90%;
+    margin: 40px auto;
+}
+
+/* ================================
+   TABLE PRINCIPALE = STRUCTURE ONLY
+================================ */
+#tableSeances {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 25px;
+}
+
+/* Cacher l'entête moche */
+#tableSeances thead {
+    display: none;
+}
+
+/* ================================
+   CARTE DE SÉANCE
+================================ */
+#tableSeances tbody tr {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Cellules séance */
+#tableSeances td {
+    padding: 18px;
+    border: none;
+    vertical-align: middle;
+}
+
+/* ================================
+   INFOS SÉANCE
+================================ */
+#tableSeances td:nth-child(1),
+#tableSeances td:nth-child(2),
+#tableSeances td:nth-child(3),
+#tableSeances td:nth-child(4) {
+    text-align: center;
+    font-weight: 600;
+    color: #062a63;
+    font-size: 0.95rem;
+}
+
+/* ================================
+   CONTENEUR PRÉSENCES
+================================ */
+#tableSeances td:nth-child(5) {
     padding: 0;
 }
 
-.main-container {
-    max-width: 1000px;
-    margin: 30px auto;
-    background-color: #fff;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.main-container h1 {
-    font-size: 28px;
-    margin-bottom: 10px;
-    color: #1a73e8;
-}
-
-.main-container p {
-    margin-bottom: 20px;
-    font-weight: bold;
-}
-
-/* ===============================
-   Tableau principal des séances
-   =============================== */
-#tableSeances {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-#tableSeances th,
-#tableSeances td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-    vertical-align: top;
-}
-
-#tableSeances th {
-    background-color: #1a73e8;
-    color: #fff;
-    font-weight: bold;
-}
-
-#tableSeances tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-/* ===============================
-   Sous-table des élèves
-   =============================== */
+/* ================================
+   SOUS-TABLE ÉLÈVES
+================================ */
 #tableSeances table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 5px;
 }
 
-#tableSeances table th,
+/* Masquer l'entête "Élève / Statut" */
+#tableSeances table thead {
+    display: none;
+}
+
+/* Ligne élève */
+#tableSeances table tr {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Cellules élève */
 #tableSeances table td {
-    border: 1px solid #ccc;
-    padding: 8px;
+    padding: 12px;
+    font-size: 0.9rem;
+    background-color: transparent;
+}
+
+/* Nom élève */
+#tableSeances table td:nth-child(1) {
     text-align: left;
+    font-weight: 600;
 }
 
-#tableSeances table th {
-    background-color: #eee;
-    font-weight: bold;
-}
-
-/* ===============================
-   Select et bouton
-   =============================== */
+/* ================================
+   SELECT STATUT
+================================ */
 .status-eleve {
-    padding: 5px 8px;
-    border-radius: 5px;
+    padding: 6px 10px;
+    border-radius: 6px;
     border: 1px solid #ccc;
-    font-size: 14px;
-    min-width: 120px;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+/* ================================
+   BOUTON CONFIRMER (HÉROS)
+================================ */
+#tableSeances table td:nth-child(3) {
+    border: none;
+    text-align: right;
 }
 
 .btn-valider-status {
-    padding: 5px 10px;
-    background-color: #1a73e8;
-    color: #fff;
+    padding: 8px 16px;
+    background-color: #062a63;
+    color: #ffffff;
     border: none;
-    border-radius: 5px;
+    border-radius: 20px;
+    font-size: 0.85rem;
     cursor: pointer;
-    font-size: 14px;
+    transition: all 0.2s ease;
 }
 
 .btn-valider-status:hover {
-    background-color: #155ab6;
+    background-color: #0a3d8f;
+    transform: translateY(-2px);
 }
 
-/* ===============================
-   Responsive
-   =============================== */
-@media (max-width: 768px) {
-    .main-container {
-        padding: 15px;
-    }
-
-    #tableSeances th,
-    #tableSeances td,
-    #tableSeances table th,
-    #tableSeances table td {
-        font-size: 12px;
-        padding: 6px;
-    }
-
-    .status-eleve {
-        font-size: 12px;
-        min-width: 100px;
-    }
-
-    .btn-valider-status {
-        font-size: 12px;
-        padding: 4px 8px;
-    }
+/* ================================
+   AUCUNE DONNÉE
+================================ */
+#tableSeances tbody tr td[colspan] {
+    text-align: center;
+    padding: 30px;
+    font-style: italic;
+    color: #777;
 }

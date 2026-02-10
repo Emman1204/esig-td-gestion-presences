@@ -298,44 +298,47 @@ class Seance
      */
     public function marquerPresence(int $seanId, string $heure, ?string $comm = null): bool
     {
-        $stmt = $this->db->prepare(
-            "SELECT SPP_SEAN_HEURE_DEB, SPP_SEAN_HEURE_FIN
-             FROM SPP_SEANCE
-             WHERE SPP_SEAN_ID = :seanId"
-        );
+        // 1️⃣ Récupérer la séance
+        $stmt = $this->db->prepare("
+        SELECT SPP_SEAN_HEURE_DEB, SPP_SEAN_HEURE_FIN, SPP_UTIL_ID
+        FROM SPP_SEANCE
+        WHERE SPP_SEAN_ID = :seanId
+    ");
         $stmt->execute(['seanId' => $seanId]);
         $seance = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$seance) {
-            return false;
-        }
+        if (!$seance) return false;
+
+        // 2️⃣ Marquer l'heure de début si vide
         if (empty($seance['SPP_SEAN_HEURE_DEB'])) {
-
-            // 1️⃣ Marquer l'heure de début
             $ok = $this->updateHeureDebut($seanId, $heure);
-
-            if ($ok) {
-                // 2️⃣ Récupérer l'élève lié à la séance
-                $stmt = $this->db->prepare("
-            SELECT SPP_UTIL_ID FROM SPP_SEANCE WHERE SPP_SEAN_ID = :seanId
-        ");
-                $stmt->execute(['seanId' => $seanId]);
-                $eleveId = (int) $stmt->fetchColumn();
-
-                // 3️⃣ Créer l'entrée EN ATTENTE pour l'enseignant
-                $this->insererSeancePourEnseignants($seanId, $eleveId);
-            }
-
-            return $ok;
+            if (!$ok) return false;
         }
 
+        // 3️⃣ Récupérer la classe de la séance via SPP_EST_INSCRIT
+        $stmt = $this->db->prepare("
+        SELECT e.SPP_UTIL_ID
+        FROM SPP_EST_INSCRIT e
+        JOIN SPP_SEANCE s ON s.SPP_SEAN_ID = :seanId
+        JOIN SPP_CLASSE c ON e.SPP_CLASSE_ID = c.SPP_CLASSE_ID
+        WHERE e.SPP_CLASSE_ID = s.SPP_UTIL_ID
+    ");
+        $stmt->execute(['seanId' => $seanId]);
+        $eleves = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
+        // 4️⃣ Insérer pour chaque élève dans SPP_ENSEI_SEAN si pas déjà fait
+        foreach ($eleves as $eleveId) {
+            $this->insererSeancePourEnseignants($seanId, (int)$eleveId);
+        }
+
+        // 5️⃣ Marquer l'heure de fin si nécessaire
         if (empty($seance['SPP_SEAN_HEURE_FIN'])) {
-            return $this->updateHeureFin($seanId, $heure);
+            $this->updateHeureFin($seanId, $heure);
         }
 
-        return false;
+        return true;
     }
+
     // public function marquerDepart($seanceId, $heure)
     // {
     //     $sql = "INSERT INTO SPP_SEANCE (SPP_SEAN_ID, SPP_SEAN_HEURE_DEB) VALUES (:id, :heure)";

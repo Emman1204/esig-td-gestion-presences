@@ -63,7 +63,6 @@
                                         <tr>
                                             <th>Élève</th>
                                             <th>Statut</th>
-                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -97,7 +96,7 @@
 
                 <?php else: ?>
                     <tr>
-                        <td colspan="5">Aucune séance assignée</td>
+                        <td colspan="5">Aucun pointage d'élève</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -105,4 +104,6 @@
     </div>
 
     <link rel="stylesheet" href="/public/css/enseignant.css">
+
 </section>
+<script src="../../../public/js/enseignant.js"></script>

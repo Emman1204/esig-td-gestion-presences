@@ -1,9 +1,10 @@
 <section>
     <link rel="stylesheet" href="/public/css/login.css">
+    <link rel="stylesheet" href="/public/css/globale.css">
 
     <div class="login-container">
 
-        <h1>Connexion</h1>
+        <h1>ESIG</h1>
 
         <?php if (!empty($error)): ?>
             <div class="error">
