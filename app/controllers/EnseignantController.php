@@ -56,20 +56,23 @@ class EnseignantController extends Controller
      */
     public function getSeances()
     {
+        header('Content-Type: application/json');
+
         $pdo = Database::getInstance();
         $seanceModel = new Seance($pdo);
 
         $enseignantId = $_SESSION['user']['id'] ?? null;
         if (!$enseignantId) {
             echo json_encode(['status' => 'error', 'message' => 'Enseignant non connecté']);
-            return;
+            exit;
         }
 
         $seances = $seanceModel->getSeancesByEnseignant($enseignantId);
-
-        header('Content-Type: application/json');
         echo json_encode(['status' => 'success', 'seances' => $seances]);
+        exit;
     }
+
+
 
     /**
      * Valider ou modifier le statut de présence d'un élève

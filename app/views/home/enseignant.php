@@ -1,6 +1,10 @@
 <section>
-    <div class="main-container">
 
+    <!-- Bouton Toggle -->
+    <button id="toggleFilter">Voir tous les élèves</button>
+
+    <!-- Zone dynamique qui contient le tableau -->
+    <div id="listePresences">
 
         <!-- Tableau des séances assignées -->
         <table id="tableSeances" border="1" cellpadding="5">
@@ -18,11 +22,10 @@
                     <?php
                     $jours = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
-                    // Grouper les séances par ID pour éviter les doublons si plusieurs élèves
                     $seances_grouped = [];
                     foreach ($seances as $s) {
                         $id = $s['SPP_SEAN_ID'] ?? null;
-                        if (!$id) continue; // sécurité
+                        if (!$id) continue;
 
                         if (!isset($seances_grouped[$id])) {
                             $seances_grouped[$id] = [
@@ -35,7 +38,6 @@
                             ];
                         }
 
-                        // Ajouter chaque élève à la séance
                         $seances_grouped[$id]['eleves'][] = [
                             'id' => $s['eleve_id'] ?? null,
                             'nom' => $s['eleve_nom'] ?? '',
@@ -57,35 +59,40 @@
                             <td><?= htmlspecialchars($s['SPP_SEAN_HEURE_FIN'] ?? '-') ?></td>
                             <td><?= htmlspecialchars($s['SPP_CLASSE_NOM']) ?></td>
                             <td>
-                                <!-- Sous-table des élèves -->
                                 <table border="1" cellpadding="3">
                                     <thead>
                                         <tr>
                                             <th>Élève</th>
                                             <th>Statut</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php foreach ($s['eleves'] as $e): ?>
-                                            <tr>
+                                            <tr class="ligne-eleve" data-status="<?= $e['status'] ?>">
                                                 <td><?= htmlspecialchars(trim($e['prenom'] . ' ' . $e['nom'])) ?></td>
                                                 <td>
-                                                    <select class="status-eleve" data-eleve-id="<?= $e['id'] ?>" data-seance-id="<?= $s['SPP_SEAN_ID'] ?>">
+                                                    <select class="status-eleve"
+                                                        data-eleve-id="<?= $e['id'] ?>"
+                                                        data-seance-id="<?= $s['SPP_SEAN_ID'] ?>">
                                                         <?php
                                                         $options = ['EN ATTENTE', 'PRESENT', 'ABSENT', 'EXCUSE', 'RETARD'];
                                                         $current = $e['status'] ?? 'EN ATTENTE';
                                                         foreach ($options as $opt):
                                                         ?>
-                                                            <option value="<?= $opt ?>" <?= $opt === $current ? 'selected' : '' ?>><?= $opt ?></option>
+                                                            <option value="<?= $opt ?>" <?= $opt === $current ? 'selected' : '' ?>>
+                                                                <?= $opt ?>
+                                                            </option>
                                                         <?php endforeach; ?>
                                                     </select>
                                                 </td>
                                                 <td>
-                                                    <button class="btn-valider-status" data-eleve-id="<?= $e['id'] ?>" data-seance-id="<?= $s['SPP_SEAN_ID'] ?>">
+                                                    <button class="btn-valider-status"
+                                                        data-eleve-id="<?= $e['id'] ?>"
+                                                        data-seance-id="<?= $s['SPP_SEAN_ID'] ?>">
                                                         Confirmer
                                                     </button>
                                                 </td>
-
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>
@@ -101,9 +108,13 @@
                 <?php endif; ?>
             </tbody>
         </table>
+
     </div>
 
     <link rel="stylesheet" href="/public/css/enseignant.css">
 
 </section>
+
+
+
 <script src="../../../public/js/enseignant.js"></script>
