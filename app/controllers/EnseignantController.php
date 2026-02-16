@@ -1,6 +1,6 @@
 <?php
 
-require_once CORE_PATH . '/Controller.php';
+require_once APP_PATH . '/controllers/Controller.php';
 require_once BASE_PATH . '/config/database.php';
 require_once APP_PATH . '/models/Seance.php';
 require_once APP_PATH . '/models/Classe.php';

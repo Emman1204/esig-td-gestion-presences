@@ -5,7 +5,7 @@
 // ----------------------------------
 
 // Classe Controller parente (render, etc.)
-require_once CORE_PATH . '/Controller.php';
+require_once APP_PATH . '/controllers/Controller.php';
 
 // Connexion PDO (singleton Database)
 require_once BASE_PATH . '/config/database.php';

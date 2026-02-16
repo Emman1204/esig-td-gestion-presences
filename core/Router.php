@@ -1,7 +1,5 @@
 <?php
 
-require_once CORE_PATH . '/Controller.php';
-
 class Router
 {
     public function run()
