@@ -75,9 +75,6 @@ class Router
             return;
         }
 
-        // -------------------------------
-        // AJAX : enregistrer un commentaire pour une séance
-        // -------------------------------
         if ($uri === 'eleve/commentaire') {
             require_once APP_PATH . '/controllers/EleveController.php';
             (new EleveController())->updateCommentaire();
@@ -90,6 +87,13 @@ class Router
         if ($uri === 'enseignant') {
             require_once APP_PATH . '/controllers/EnseignantController.php';
             (new EnseignantController())->index();
+            return;
+        }
+
+        // **AJAX : récupérer les séances / élèves pour un enseignant**
+        if ($uri === 'enseignant/getSeances') {
+            require_once APP_PATH . '/controllers/EnseignantController.php';
+            (new EnseignantController())->getSeances();
             return;
         }
 

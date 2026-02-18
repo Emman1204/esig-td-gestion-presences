@@ -3,13 +3,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggleButton = document.getElementById("toggleFilter");
     const zonePresences = document.getElementById("listePresences");
 
-    let showOnlyPresent = true; // Par défaut : on affiche ceux qui ont pointé
+    if (!tableBody) {
+        console.error("Erreur : le tableau #tableSeancesProf n'existe pas dans le DOM");
+        return;
+    }
 
-    // -------------------------------
-    // Fonction pour charger les séances depuis le serveur
-    // -------------------------------
+    let showOnlyPresent = false; // On affiche tous les élèves par défaut
+
     function loadSeances() {
-        fetch("/enseignant/getSeances", { method: "GET", credentials: "same-origin" })
+        fetch("enseignant/getSeances", { method: "GET", credentials: "same-origin" })
             .then(res => res.json())
             .then(data => {
                 if (data.status !== "success") {
@@ -19,32 +21,69 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 tableBody.innerHTML = "";
 
+                const seancesGrouped = {};
                 data.seances.forEach(seance => {
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                        <td>${seance.SPP_SEAN_DATE}</td>
-                        <td>${seance.SPP_SEAN_HEURE_DEB ?? ""}</td>
-                        <td>${seance.SPP_SEAN_HEURE_FIN ?? ""}</td>
-                        <td>${seance.SPP_UTIL_NOM} ${seance.SPP_UTIL_PRENOM}</td>
-                        <td>
-                            <select class="status-select" data-seance-id="${seance.SPP_SEAN_ID}" data-eleve-id="${seance.eleve_id}">
-                                <option value="">En attente</option>
-                                <option value="PRESENT">Présent</option>
-                                <option value="ABSENT">Absent</option>
-                                <option value="EXCUSE">Excusé</option>
-                                <option value="RETARD">Retard</option>
-                            </select>
-                        </td>
-                    `;
-                    tableBody.appendChild(tr);
-
-                    // Initialiser le select avec le status actuel
-                    const select = tr.querySelector(".status-select");
-                    if (seance.SPP_ENS_SEAN_STATUS) {
-                        select.value = seance.SPP_ENS_SEAN_STATUS;
+                    const seanceId = seance.SPP_SEAN_ID;
+                    if (!seancesGrouped[seanceId]) {
+                        seancesGrouped[seanceId] = { ...seance, eleves: [] };
                     }
+                    seancesGrouped[seanceId].eleves.push({
+                        id: seance.eleve_id,
+                        nom: seance.eleve_nom,
+                        prenom: seance.eleve_prenom,
+                        status: seance.SPP_ENS_SEAN_STATUS || 'EN ATTENTE'
+                    });
+                });
 
-                    // Listener pour mise à jour du status
+                Object.values(seancesGrouped).forEach(seance => {
+                    const tr = document.createElement("tr");
+                    const date = seance.SPP_SEAN_DATE ?? "-";
+                    const debut = seance.SPP_SEAN_HEURE_DEB ?? "-";
+                    const fin = seance.SPP_SEAN_HEURE_FIN ?? "-";
+                    const classe = seance.SPP_CLASSE_NOM ?? "-";
+
+                    // Construire sous-table de tous les élèves (plus de filtre)
+                    let elevesHTML = `<table border="0" width="100%">`;
+                    seance.eleves.forEach(eleve => {
+                        elevesHTML += `
+                            <tr>
+                                <td>${eleve.prenom} ${eleve.nom}</td>
+                                <td>
+                                    <select class="status-select"
+                                        data-seance-id="${seance.SPP_SEAN_ID}"
+                                        data-eleve-id="${eleve.id}">
+                                        <option value="EN ATTENTE" ${eleve.status === "EN ATTENTE" ? "selected" : ""}>En attente</option>
+                                        <option value="PRESENT" ${eleve.status === "PRESENT" ? "selected" : ""}>Présent</option>
+                                        <option value="ABSENT" ${eleve.status === "ABSENT" ? "selected" : ""}>Absent</option>
+                                        <option value="EXCUSE" ${eleve.status === "EXCUSE" ? "selected" : ""}>Excusé</option>
+                                        <option value="RETARD" ${eleve.status === "RETARD" ? "selected" : ""}>Retard</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <button class="btn-valider-status"
+                                        data-eleve-id="${eleve.id}"
+                                        data-seance-id="${seance.SPP_SEAN_ID}">
+                                        Confirmer
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    elevesHTML += `</table>`;
+
+                    tr.innerHTML = `
+                        <td>${date}</td>
+                        <td>${debut}</td>
+                        <td>${fin}</td>
+                        <td>${classe}</td>
+                        <td>${elevesHTML}</td>
+                    `;
+
+                    tableBody.appendChild(tr);
+                });
+
+                // Listeners
+                tableBody.querySelectorAll(".status-select").forEach(select => {
                     select.addEventListener("change", function () {
                         fetch("/enseignant/validerPresence", {
                             method: "POST",
@@ -63,34 +102,23 @@ document.addEventListener("DOMContentLoaded", () => {
                         .catch(err => console.error(err));
                     });
                 });
+
+                tableBody.querySelectorAll(".btn-valider-status").forEach(btn => {
+                    btn.addEventListener("click", function () {
+                        const select = this.closest("tr").querySelector(".status-select");
+                        select.dispatchEvent(new Event("change"));
+                    });
+                });
             })
             .catch(err => console.error("Erreur fetch séances:", err));
     }
 
-    // Charger les séances au chargement
     loadSeances();
-    window.reloadSeancesProf = loadSeances; // pour pouvoir relancer si besoin
+    window.reloadSeancesProf = loadSeances;
 
-    // -------------------------------
-    // Toggle : voir seulement ceux qui ont pointé / tous les élèves
-    // -------------------------------
     toggleButton.addEventListener("click", () => {
         showOnlyPresent = !showOnlyPresent;
-
-        if (showOnlyPresent) {
-            // Affiche seulement ceux qui ont pointé
-            zonePresences.innerHTML = `
-                <h3>Élèves ayant pointé</h3>
-                <p>(La liste réelle des élèves ayant pointé sera affichée ici)</p>
-            `;
-            toggleButton.textContent = "Voir tous les élèves";
-        } else {
-            // Affiche tous les élèves (test pour le moment)
-            zonePresences.innerHTML = `
-                <h3>Afficher la classe</h3>
-                <p>(La liste complète des élèves sera affichée ici)</p>
-            `;
-            toggleButton.textContent = "Voir seulement ceux qui ont pointé";
-        }
+        loadSeances(); // Recharger le tableau (toggle pour futur filtre)
+        toggleButton.textContent = showOnlyPresent ? "Voir tous les élèves" : "Voir seulement ceux qui ont pointé";
     });
 });

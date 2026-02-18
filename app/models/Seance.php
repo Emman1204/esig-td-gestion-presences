@@ -422,31 +422,31 @@ class Seance
     public static function getSeancesByEnseignant($enseignantId)
     {
         $db = Database::getInstance();
-        $stmt = $db->prepare("
-            SELECT 
-                s.SPP_SEAN_ID,
-                s.SPP_SEAN_DATE,
-                s.SPP_SEAN_HEURE_DEB,
-                s.SPP_SEAN_HEURE_FIN,
-                e.SPP_UTIL_ID AS eleve_id,
-                e.SPP_UTIL_NOM,
-                e.SPP_UTIL_PRENOM,
-                es.SPP_ENS_SEAN_STATUS
-            FROM SPP_SEANCE s
-            INNER JOIN SPP_EST_INSCRIT ei ON ei.SPP_CLASSE_ID = (
-                SELECT sc.SPP_CLASSE_ID 
-                FROM SPP_SUPERVISE sc
-                WHERE sc.SPP_UTIL_ID = :enseignantId
-                LIMIT 1
-            )
-            INNER JOIN SPP_ELEVE e ON e.SPP_UTIL_ID = ei.SPP_UTIL_ID
-            LEFT JOIN SPP_ENSEI_SEAN es ON es.SPP_SEAN_ID = s.SPP_SEAN_ID AND es.SPP_UTIL_ID = :enseignantId
-            WHERE s.SPP_UTIL_ID = e.SPP_UTIL_ID
-            ORDER BY s.SPP_SEAN_DATE DESC
-        ");
+
+        $sql = "
+        SELECT 
+            c.SPP_CLASSE_NOM,
+            e.SPP_UTIL_ID AS eleve_id,
+            e.SPP_UTIL_NOM AS eleve_nom,
+            e.SPP_UTIL_PRENOM AS eleve_prenom
+        FROM SPP_SUPERVISE sc
+        INNER JOIN SPP_CLASSE c 
+            ON c.SPP_CLASSE_ID = sc.SPP_CLASSE_ID
+        INNER JOIN SPP_EST_INSCRIT ei 
+            ON ei.SPP_CLASSE_ID = c.SPP_CLASSE_ID
+        INNER JOIN SPP_ELEVE e 
+            ON e.SPP_UTIL_ID = ei.SPP_UTIL_ID
+        WHERE sc.SPP_UTIL_ID = :enseignantId
+        ORDER BY e.SPP_UTIL_NOM ASC
+    ";
+
+        $stmt = $db->prepare($sql);
         $stmt->execute(['enseignantId' => $enseignantId]);
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+
 
     // Mettre à jour le statut d'une présence
     public static function updateStatutPresence($eleveId, $seanceId, $status)

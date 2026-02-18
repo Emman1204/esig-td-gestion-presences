@@ -7,7 +7,7 @@
     <div id="listePresences">
 
         <!-- Tableau des séances assignées -->
-        <table id="tableSeances" border="1" cellpadding="5">
+        <table id="tableSeancesProf" border="1" cellpadding="5"> <!-- Changement d'ID -->
             <thead>
                 <tr>
                     <th>Date</th>
@@ -111,10 +111,7 @@
 
     </div>
 
-    <link rel="stylesheet" href="/public/css/enseignant.css">
 
 </section>
-
-
 
 <script src="../../../public/js/enseignant.js"></script>
