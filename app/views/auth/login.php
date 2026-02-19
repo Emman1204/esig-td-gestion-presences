@@ -1,6 +1,6 @@
 <section>
-    <link rel="stylesheet" href="/public/css/login.css">
-    <link rel="stylesheet" href="/public/css/globale.css">
+    <link rel="stylesheet" href="./../../../public/css/login.css">
+    <link rel="stylesheet" href="./../../../public/css/globale.css">
 
     <div class="login-container">
 

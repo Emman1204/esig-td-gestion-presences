@@ -1,141 +1,81 @@
-/* ================================
-   GLOBAL
-================================ */
-body {
-    background-color: #f4f6f9;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
-
-/* ================================
-   CONTAINER
-================================ */
-.main-container {
-    width: 90%;
-    margin: 40px auto;
-}
-
-/* ================================
-   TABLE PRINCIPALE = STRUCTURE ONLY
-================================ */
-#tableSeances {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 25px;
-}
-
-/* Cacher l'entête moche */
-#tableSeances thead {
-    display: none;
-}
-
-/* ================================
-   CARTE DE SÉANCE
-================================ */
-#tableSeances tbody tr {
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-}
-
-/* Cellules séance */
-#tableSeances td {
-    padding: 18px;
-    border: none;
-    vertical-align: middle;
-}
-
-/* ================================
-   INFOS SÉANCE
-================================ */
-#tableSeances td:nth-child(1),
-#tableSeances td:nth-child(2),
-#tableSeances td:nth-child(3),
-#tableSeances td:nth-child(4) {
-    text-align: center;
-    font-weight: 600;
-    color: #062a63;
-    font-size: 0.95rem;
-}
-
-/* ================================
-   CONTENEUR PRÉSENCES
-================================ */
-#tableSeances td:nth-child(5) {
-    padding: 0;
-}
-
-/* ================================
-   SOUS-TABLE ÉLÈVES
-================================ */
-#tableSeances table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-/* Masquer l'entête "Élève / Statut" */
-#tableSeances table thead {
-    display: none;
-}
-
-/* Ligne élève */
-#tableSeances table tr {
-    border-bottom: 1px solid #e0e0e0;
-}
-
-/* Cellules élève */
-#tableSeances table td {
-    padding: 12px;
-    font-size: 0.9rem;
-    background-color: transparent;
-}
-
-/* Nom élève */
-#tableSeances table td:nth-child(1) {
-    text-align: left;
-    font-weight: 600;
-}
-
-/* ================================
-   SELECT STATUT
-================================ */
-.status-eleve {
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background-color: #ffffff;
-    cursor: pointer;
-}
-
-/* ================================
-   BOUTON CONFIRMER (HÉROS)
-================================ */
-#tableSeances table td:nth-child(3) {
-    border: none;
-    text-align: right;
-}
-
-.btn-valider-status {
-    padding: 8px 16px;
-    background-color: #062a63;
-    color: #ffffff;
-    border: none;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-valider-status:hover {
-    background-color: #0a3d8f;
-    transform: translateY(-2px);
-}
-
-/* ================================
-   AUCUNE DONNÉE
-================================ */
-#tableSeances tbody tr td[colspan] {
-    text-align: center;
+/* Centre le contenu verticalement et horizontalement */
+.eleves-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: 30px;
-    font-style: italic;
-    color: #777;
 }
+
+/* Style du tableau */
+.eleves-table {
+    border-collapse: collapse;
+    width: 60%; /* Largeur du tableau */
+    text-align: center;
+    font-family: Arial, sans-serif;
+    background-color: #f0fff0; /* vert très clair */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Style des cellules */
+.eleves-table th, .eleves-table td {
+    border: 1px solid #92cdec;
+    padding: 10px;
+}
+
+/* Style de l'en-tête */
+.eleves-table th {
+    background-color: #5a79ded0;
+    color: white;
+    font-size: 16px;
+}
+
+/* Highlight pour les élèves qui ont pointé */
+.eleve-pointé {
+    background-color: #1be081; /* jaune clair */
+    font-weight: bold;
+}
+
+/* Ligne hover */
+.eleves-table tr:hover {
+    background-color: #6b73e529;
+}
+
+/* Modal container */
+.modal {
+    display: none; /* caché par défaut */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5); /* fond semi-transparent */
+}
+
+/* Contenu du modal */
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; /* centré verticalement et horizontalement */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 300px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+
+/* Bouton fermeture */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+}
+

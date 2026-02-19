@@ -83,36 +83,38 @@ class Seance
     /**
      * Récupérer les séances d’un enseignant
      */
-    public function findByEnseignant(int $enseignantId): array
-    {
-        $sql = "
-    SELECT
-        s.SPP_SEAN_ID,
-        s.SPP_SEAN_DATE,
-        s.SPP_SEAN_HEURE_DEB,
-        s.SPP_SEAN_HEURE_FIN,
-        e.SPP_UTIL_ID AS eleve_id,
-        e.SPP_UTIL_NOM AS eleve_nom,
-        e.SPP_UTIL_PRENOM AS eleve_prenom,
-        c.SPP_CLASSE_ID,
-        c.SPP_CLASSE_NOM,
-        COALESCE(es.SPP_ENS_SEAN_STATUS, 'EN ATTENTE') AS SPP_ENS_SEAN_STATUS
-    FROM SPP_SEANCE s
-    JOIN SPP_ELEVE e ON s.SPP_UTIL_ID = e.SPP_UTIL_ID
-    JOIN SPP_EST_INSCRIT ei ON e.SPP_UTIL_ID = ei.SPP_UTIL_ID
-    JOIN SPP_CLASSE c ON ei.SPP_CLASSE_ID = c.SPP_CLASSE_ID
-    JOIN SPP_SUPERVISE sup ON c.SPP_CLASSE_ID = sup.SPP_CLASSE_ID
-    LEFT JOIN SPP_ENSEI_SEAN es 
-        ON s.SPP_SEAN_ID = es.SPP_SEAN_ID AND sup.SPP_UTIL_ID = es.SPP_UTIL_ID
-    WHERE sup.SPP_UTIL_ID = :enseignantId
-    ORDER BY s.SPP_SEAN_DATE DESC, s.SPP_SEAN_HEURE_DEB ASC
+public static function getElevesByEnseignant($enseignantId)
+{
+    $db = Database::getInstance();
+
+    $sql = "
+        SELECT 
+            c.SPP_CLASSE_NOM,
+            e.SPP_UTIL_ID AS eleve_id,
+            e.SPP_UTIL_NOM AS eleve_nom,
+            e.SPP_UTIL_PRENOM AS eleve_prenom,
+            MAX(es.SPP_ENS_SEAN_STATUS) AS status
+        FROM SPP_SUPERVISE sc
+        INNER JOIN SPP_CLASSE c 
+            ON c.SPP_CLASSE_ID = sc.SPP_CLASSE_ID
+        INNER JOIN SPP_EST_INSCRIT ei 
+            ON ei.SPP_CLASSE_ID = c.SPP_CLASSE_ID
+        INNER JOIN SPP_ELEVE e 
+            ON e.SPP_UTIL_ID = ei.SPP_UTIL_ID
+        LEFT JOIN SPP_ENSEI_SEAN es 
+            ON es.SPP_UTIL_ID = e.SPP_UTIL_ID
+        WHERE sc.SPP_UTIL_ID = :enseignantId
+        GROUP BY c.SPP_CLASSE_NOM, e.SPP_UTIL_ID, e.SPP_UTIL_NOM, e.SPP_UTIL_PRENOM
+        ORDER BY e.SPP_UTIL_NOM ASC, e.SPP_UTIL_PRENOM ASC
     ";
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['enseignantId' => $enseignantId]);
+    $stmt = $db->prepare($sql);
+    $stmt->execute(['enseignantId' => $enseignantId]);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
 
 
     /**

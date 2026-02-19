@@ -23,9 +23,28 @@ class AuthController extends Controller
      */
     public function login()
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // 🔐 Si déjà connecté → redirection selon rôle
+        if (isset($_SESSION['user'])) {
+
+            if ($_SESSION['user']['role'] === 'eleve') {
+                header('Location: /public/eleve');
+            } elseif ($_SESSION['user']['role'] === 'enseignant') {
+                header('Location: /public/enseignant');
+            }
+
+            exit;
+        }
+
+        // Anti-cache navigateur
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        header("Pragma: no-cache");
+
         $this->render('auth/login');
     }
-
     /**
      * -------------------------------------------------
      * Traite le formulaire de connexion

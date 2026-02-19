@@ -17,39 +17,32 @@ class EnseignantController extends Controller
      * Page principale enseignant
      */
     public function index()
-    {
-        $pdo = Database::getInstance();
-        $seanceModel = new Seance($pdo);
-        $classeModel = new Classe($pdo);
+{
+    $pdo = Database::getInstance();
+    $seanceModel = new Seance($pdo); // le modèle qui récupère les élèves par enseignant
 
-        // 🔹 ID de l'enseignant connecté
-        $enseignantId = $_SESSION['user']['id'] ?? null;
-        if (!$enseignantId) {
-            die("⚠️ Aucun enseignant connecté !");
-        }
-
-        // Récupérer toutes les séances assignées à cet enseignant
-        $seances = $seanceModel->findByEnseignant($enseignantId);
-
-        // Pour chaque séance, récupérer le nom de la classe
-        foreach ($seances as &$s) {
-            $classe = $classeModel->findById($s['SPP_CLASSE_ID'] ?? 0);
-            $s['SPP_CLASSE_NOM'] = $classe['SPP_CLASSE_NOM'] ?? '-';
-        }
-
-        // Informations de l’enseignant connecté
-        $enseignant = [
-            'SPP_UTIL_NOM' => trim(
-                ($_SESSION['user']['nom'] ?? '') . ' ' . ($_SESSION['user']['prenom'] ?? '')
-            )
-        ];
-
-        // Affichage de la vue
-        $this->render('home/enseignant', [
-            'seances' => $seances,
-            'enseignant' => $enseignant
-        ]);
+    // 🔹 ID de l'enseignant connecté
+    $enseignantId = $_SESSION['user']['id'] ?? null;
+    if (!$enseignantId) {
+        die("⚠️ Aucun enseignant connecté !");
     }
+
+    // 🔹 Récupérer tous les élèves des classes supervisées par l'enseignant
+    $eleves = $seanceModel->getElevesByEnseignant($enseignantId);
+
+    // 🔹 Infos de l’enseignant connecté (facultatif pour affichage)
+    $enseignant = [
+        'SPP_UTIL_NOM' => trim(
+            ($_SESSION['user']['nom'] ?? '') . ' ' . ($_SESSION['user']['prenom'] ?? '')
+        )
+    ];
+
+    // 🔹 Affichage de la vue
+    $this->render('home/enseignant', [
+        'eleves' => $eleves,
+        'enseignant' => $enseignant
+    ]);
+}
 
     /**
      * Récupérer via AJAX toutes les séances avec leurs présences
