@@ -1,81 +1,155 @@
-/* Centre le contenu verticalement et horizontalement */
+/* ============================= */
+/* SECTION PRINCIPALE */
+/* ============================= */
+
 .eleves-section {
+    min-height: 70vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 30px;
+    padding: 40px 20px;
 }
 
-/* Style du tableau */
+/* ============================= */
+/* TITRE & CLASSE */
+/* ============================= */
+
+.eleves-section h2 {
+    margin-bottom: 10px;
+    font-size: 26px;
+}
+
+.classe-label {
+    margin-bottom: 25px;
+    font-size: 18px;
+    color: #444;
+}
+
+/* ============================= */
+/* TABLEAU */
+/* ============================= */
+
 .eleves-table {
     border-collapse: collapse;
-    width: 60%; /* Largeur du tableau */
+    width: 65%;
+    min-width: 500px;
     text-align: center;
     font-family: Arial, sans-serif;
-    background-color: #f0fff0; /* vert très clair */
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
-/* Style des cellules */
-.eleves-table th, .eleves-table td {
-    border: 1px solid #92cdec;
-    padding: 10px;
-}
-
-/* Style de l'en-tête */
-.eleves-table th {
-    background-color: #5a79ded0;
+/* En-tête */
+.eleves-table thead {
+    background: linear-gradient(135deg, #5a79de, #3f5ac9);
     color: white;
+}
+
+.eleves-table th {
+    padding: 14px;
     font-size: 16px;
+    letter-spacing: 0.5px;
 }
 
-/* Highlight pour les élèves qui ont pointé */
-.eleve-pointé {
-    background-color: #1be081; /* jaune clair */
-    font-weight: bold;
+/* Cellules */
+.eleves-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
 }
 
-/* Ligne hover */
-.eleves-table tr:hover {
-    background-color: #6b73e529;
+/* Hover élégant */
+.eleves-table tbody tr {
+    transition: background 0.2s ease, transform 0.1s ease;
+    cursor: pointer;
 }
 
-/* Modal container */
+.eleves-table tbody tr:hover {
+    background-color: #f2f6ff;
+    transform: scale(1.01);
+}
+
+/* ============================= */
+/* ÉLÈVE QUI A POINTÉ AUJOURD’HUI */
+/* ============================= */
+
+.eleve-pointe {
+    background-color: #e6f9f0 !important;
+    border-left: 5px solid #1be081;
+    font-weight: 600;
+}
+
+/* ============================= */
+/* MODAL */
+/* ============================= */
+
 .modal {
-    display: none; /* caché par défaut */
+    display: none;
     position: fixed;
     z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5); /* fond semi-transparent */
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
 }
 
-/* Contenu du modal */
+/* Contenu modal */
 .modal-content {
-    background-color: #fefefe;
-    margin: 10% auto; /* centré verticalement et horizontalement */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 300px;
-    border-radius: 8px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    background-color: #ffffff;
+    margin: 8% auto;
+    padding: 25px 30px;
+    width: 350px;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
 }
 
 /* Bouton fermeture */
 .close {
-    color: #aaa;
     float: right;
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
     cursor: pointer;
+    color: #999;
+    transition: color 0.2s ease;
 }
 
-.close:hover,
-.close:focus {
+.close:hover {
     color: #000;
 }
 
+/* ============================= */
+/* ANIMATION */
+/* ============================= */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media (max-width: 768px) {
+    .eleves-table {
+        width: 95%;
+        min-width: unset;
+    }
+
+    .modal-content {
+        width: 90%;
+    }
+}

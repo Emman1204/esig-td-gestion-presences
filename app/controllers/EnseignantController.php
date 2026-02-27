@@ -16,28 +16,28 @@ class EnseignantController extends Controller
     /**
      * Page principale enseignant
      */
-    public function index()
+public function index()
 {
     $pdo = Database::getInstance();
-    $seanceModel = new Seance($pdo); // le modèle qui récupère les élèves par enseignant
+    $seanceModel = new Seance($pdo);
 
-    // 🔹 ID de l'enseignant connecté
+    // ID de l'enseignant connecté
     $enseignantId = $_SESSION['user']['id'] ?? null;
     if (!$enseignantId) {
         die("⚠️ Aucun enseignant connecté !");
     }
 
-    // 🔹 Récupérer tous les élèves des classes supervisées par l'enseignant
+    // Récupération des élèves avec mise en évidence pour aujourd'hui
     $eleves = $seanceModel->getElevesByEnseignant($enseignantId);
 
-    // 🔹 Infos de l’enseignant connecté (facultatif pour affichage)
+    // Informations de l’enseignant connecté
     $enseignant = [
         'SPP_UTIL_NOM' => trim(
             ($_SESSION['user']['nom'] ?? '') . ' ' . ($_SESSION['user']['prenom'] ?? '')
         )
     ];
 
-    // 🔹 Affichage de la vue
+    // Affichage de la vue
     $this->render('home/enseignant', [
         'eleves' => $eleves,
         'enseignant' => $enseignant

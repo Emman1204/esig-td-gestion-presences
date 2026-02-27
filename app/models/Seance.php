@@ -83,40 +83,80 @@ class Seance
     /**
      * Récupérer les séances d’un enseignant
      */
-public static function getElevesByEnseignant($enseignantId)
-{
-    $db = Database::getInstance();
+    // 1️⃣ Tous les élèves de la classe de l'enseignant
+    public static function getElevesByEnseignant($enseignantId)
+    {
+        $db = Database::getInstance();
 
-    $sql = "
+        // 1️⃣ Tous les élèves de la classe supervisée par l'enseignant
+        $sqlEleves = "
         SELECT 
             c.SPP_CLASSE_NOM,
             e.SPP_UTIL_ID AS eleve_id,
             e.SPP_UTIL_NOM AS eleve_nom,
-            e.SPP_UTIL_PRENOM AS eleve_prenom,
-            MAX(es.SPP_ENS_SEAN_STATUS) AS status
+            e.SPP_UTIL_PRENOM AS eleve_prenom
         FROM SPP_SUPERVISE sc
-        INNER JOIN SPP_CLASSE c 
-            ON c.SPP_CLASSE_ID = sc.SPP_CLASSE_ID
-        INNER JOIN SPP_EST_INSCRIT ei 
-            ON ei.SPP_CLASSE_ID = c.SPP_CLASSE_ID
-        INNER JOIN SPP_ELEVE e 
-            ON e.SPP_UTIL_ID = ei.SPP_UTIL_ID
-        LEFT JOIN SPP_ENSEI_SEAN es 
-            ON es.SPP_UTIL_ID = e.SPP_UTIL_ID
+        INNER JOIN SPP_CLASSE c ON c.SPP_CLASSE_ID = sc.SPP_CLASSE_ID
+        INNER JOIN SPP_EST_INSCRIT ei ON ei.SPP_CLASSE_ID = c.SPP_CLASSE_ID
+        INNER JOIN SPP_ELEVE e ON e.SPP_UTIL_ID = ei.SPP_UTIL_ID
         WHERE sc.SPP_UTIL_ID = :enseignantId
-        GROUP BY c.SPP_CLASSE_NOM, e.SPP_UTIL_ID, e.SPP_UTIL_NOM, e.SPP_UTIL_PRENOM
         ORDER BY e.SPP_UTIL_NOM ASC, e.SPP_UTIL_PRENOM ASC
     ";
+        $stmt = $db->prepare($sqlEleves);
+        $stmt->execute(['enseignantId' => $enseignantId]);
+        $eleves = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $stmt = $db->prepare($sql);
-    $stmt->execute(['enseignantId' => $enseignantId]);
+        // 2️⃣ Tous les élèves qui ont pointé aujourd'hui (EN ATTENTE)
+        $sqlPointes = "
+    SELECT DISTINCT s.SPP_UTIL_ID AS eleve_id
+    FROM SPP_SEANCE s
+    INNER JOIN SPP_EST_INSCRIT ei ON ei.SPP_UTIL_ID = s.SPP_UTIL_ID
+    INNER JOIN SPP_SUPERVISE sc ON sc.SPP_CLASSE_ID = ei.SPP_CLASSE_ID
+    INNER JOIN SPP_ENSEI_SEAN es ON es.SPP_SEAN_ID = s.SPP_SEAN_ID
+    WHERE sc.SPP_UTIL_ID = :enseignantId
+      AND DATE(s.SPP_SEAN_DATE) = CURDATE()
+      AND es.SPP_ENS_SEAN_STATUS = 'EN ATTENTE'
+";
+        $stmt2 = $db->prepare($sqlPointes);
+        $stmt2->execute(['enseignantId' => $enseignantId]);
+        $elevesPointes = $stmt2->fetchAll(PDO::FETCH_COLUMN, 0);
 
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+        // 3️⃣ Marquer les élèves pointés
+        foreach ($eleves as &$e) {
+            if (in_array($e['eleve_id'], $elevesPointes)) {
+                $e['status'] = 'EN ATTENTE'; // pour mettre en évidence
+            } else {
+                $e['status'] = ''; // pas pointé aujourd'hui
+            }
+        }
 
+        return $eleves;
+    }
 
+    // 2️⃣ Élèves qui ont pointé aujourd'hui
+    public static function getElevesPointesAujourdHui($enseignantId)
+    {
+        $db = Database::getInstance();
 
+        $sql = "
+        SELECT DISTINCT e.SPP_UTIL_ID AS eleve_id
+        FROM SPP_SEANCE s
+        INNER JOIN SPP_ENSEI_SEAN es ON es.SPP_SEAN_ID = s.SPP_SEAN_ID
+        INNER JOIN SPP_ELEVE e ON e.SPP_UTIL_ID = es.SPP_UTIL_ID
+        INNER JOIN SPP_EST_INSCRIT ei ON ei.SPP_UTIL_ID = e.SPP_UTIL_ID
+        INNER JOIN SPP_SUPERVISE sc ON sc.SPP_CLASSE_ID = ei.SPP_CLASSE_ID
+        WHERE sc.SPP_UTIL_ID = :enseignantId
+        AND DATE(s.SPP_SEAN_DATE) = CURDATE()
+        AND es.SPP_ENS_SEAN_STATUS = 'EN ATTENTE'
+    ";
 
+        $stmt = $db->prepare($sql);
+        $stmt->execute(['enseignantId' => $enseignantId]);
+
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_column($result, 'eleve_id');
+    }
     /**
      * Récupérer la séance du jour pour un élève
      * (utile pour afficher le bouton Départ / Fin)
@@ -212,20 +252,23 @@ public static function getElevesByEnseignant($enseignantId)
     public function updateHeureDebut(int $seanId, string $heureDebut): bool
     {
         $sql = "UPDATE SPP_SEANCE
-                SET SPP_SEAN_HEURE_DEB = :heureDebut
-                WHERE SPP_SEAN_ID = :seanId
-                AND SPP_SEAN_HEURE_DEB IS NULL";
+            SET SPP_SEAN_HEURE_DEB = :heureDebut
+            WHERE SPP_SEAN_ID = :seanId
+            AND SPP_SEAN_HEURE_DEB IS NULL";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':heureDebut', $heureDebut);
-        $stmt->bindParam(':seanId', $seanId, PDO::PARAM_INT);
-        $success = $stmt->execute();
+
+        $success = $stmt->execute([
+            ':heureDebut' => $heureDebut,
+            ':seanId'     => $seanId
+        ]);
+
         if ($success) {
-            // 🔥 C’EST ICI QU’ON LIE LA SÉANCE AUX ENSEIGNANTS
+            // 🔥 On lie la séance à l’enseignant
             $this->insererEnseignantsSeance($seanId);
         }
 
-        return $stmt->execute();
+        return $success;
     }
     private function insererEnseignantsSeance(int $seanceId): void
     {
