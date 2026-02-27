@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="/public/css/enseignant.css">
 <link rel="stylesheet" href="/public/css/globale.css">
-
+<script src="../../../public/js/enseignant.js"></script>
 <section class="eleves-section">
 
     <h2>Liste des élèves</h2>
@@ -30,6 +30,7 @@
 
                     <tr
                         class="ligne-eleve <?= $isPointeAujourdhui ? 'eleve-pointe' : '' ?>"
+                        data-eleve-id="<?= $e['eleve_id'] ?>"
                         data-nom="<?= htmlspecialchars($e['eleve_nom']) ?>"
                         data-prenom="<?= htmlspecialchars($e['eleve_prenom']) ?>"
                         data-status="<?= htmlspecialchars($status ?? 'Non pointé') ?>"
@@ -49,7 +50,10 @@
     <?php endif; ?>
 
 
+    <!-- ========================= -->
     <!-- MODAL -->
+    <!-- ========================= -->
+
     <div id="eleveModal" class="modal">
         <div class="modal-content">
 
@@ -59,11 +63,19 @@
 
             <p><strong>Prénom :</strong> <span id="modalPrenom"></span></p>
             <p><strong>Nom :</strong> <span id="modalNom"></span></p>
-            <p><strong>Statut :</strong> <span id="modalStatus"></span></p>
+
+            <hr>
+
+            <!-- 🔹 Pointage du jour -->
+            <div id="modalPointage"></div>
+
+            <hr>
+
+            <!-- 🔹 Historique -->
+            <div id="modalHistorique"></div>
 
         </div>
     </div>
 
 </section>
 
-<script src="/public/js/enseignant.js"></script>

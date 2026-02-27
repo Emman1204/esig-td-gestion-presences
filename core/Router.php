@@ -12,15 +12,8 @@ class Router
         // Supprimer les paramètres GET (?x=...)
         $uri = parse_url($uri, PHP_URL_PATH);
 
-        // -------------------------------
-        // NETTOYAGE DE L’URL
-        // -------------------------------
-
-        // Supprimer /public s'il est présent
-        $uri = str_replace('/public', '', $uri);
-
-        // Supprimer index.php s'il est présent
-        $uri = str_replace('/index.php', '', $uri);
+        // Supprimer /public ou index.php s'ils sont présents
+        $uri = str_replace(['/public', '/index.php'], '', $uri);
 
         // Normalisation finale : supprimer les slashs début/fin
         $uri = trim($uri, '/');
@@ -90,11 +83,25 @@ class Router
             return;
         }
 
-        // **AJAX : récupérer les séances / élèves pour un enseignant**
+        // AJAX : récupérer les séances / élèves pour un enseignant
         if ($uri === 'enseignant/getSeances') {
             require_once APP_PATH . '/controllers/EnseignantController.php';
             (new EnseignantController())->getSeances();
             return;
+        }
+
+        // -------------------------------
+        // ROUTE DYNAMIQUE : détails élève (robuste)
+        // -------------------------------
+        $pattern = '#^enseignant/eleve/(\d+)$#';
+        if (preg_match($pattern, $uri, $matches)) {
+            require_once APP_PATH . '/controllers/EnseignantController.php';
+            $eleveId = (int)$matches[1];
+
+            if ($eleveId > 0) {
+                (new EnseignantController())->eleveDetails($eleveId);
+                return;
+            }
         }
 
         // -------------------------------

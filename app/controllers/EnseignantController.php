@@ -16,33 +16,33 @@ class EnseignantController extends Controller
     /**
      * Page principale enseignant
      */
-public function index()
-{
-    $pdo = Database::getInstance();
-    $seanceModel = new Seance($pdo);
+    public function index()
+    {
+        $pdo = Database::getInstance();
+        $seanceModel = new Seance($pdo);
 
-    // ID de l'enseignant connecté
-    $enseignantId = $_SESSION['user']['id'] ?? null;
-    if (!$enseignantId) {
-        die("⚠️ Aucun enseignant connecté !");
+        // ID de l'enseignant connecté
+        $enseignantId = $_SESSION['user']['id'] ?? null;
+        if (!$enseignantId) {
+            die("⚠️ Aucun enseignant connecté !");
+        }
+
+        // Récupération des élèves avec mise en évidence pour aujourd'hui
+        $eleves = $seanceModel->getElevesByEnseignant($enseignantId);
+
+        // Informations de l’enseignant connecté
+        $enseignant = [
+            'SPP_UTIL_NOM' => trim(
+                ($_SESSION['user']['nom'] ?? '') . ' ' . ($_SESSION['user']['prenom'] ?? '')
+            )
+        ];
+
+        // Affichage de la vue
+        $this->render('home/enseignant', [
+            'eleves' => $eleves,
+            'enseignant' => $enseignant
+        ]);
     }
-
-    // Récupération des élèves avec mise en évidence pour aujourd'hui
-    $eleves = $seanceModel->getElevesByEnseignant($enseignantId);
-
-    // Informations de l’enseignant connecté
-    $enseignant = [
-        'SPP_UTIL_NOM' => trim(
-            ($_SESSION['user']['nom'] ?? '') . ' ' . ($_SESSION['user']['prenom'] ?? '')
-        )
-    ];
-
-    // Affichage de la vue
-    $this->render('home/enseignant', [
-        'eleves' => $eleves,
-        'enseignant' => $enseignant
-    ]);
-}
 
     /**
      * Récupérer via AJAX toutes les séances avec leurs présences
@@ -98,4 +98,62 @@ public function index()
             echo json_encode(['status' => 'error', 'message' => 'Erreur lors de la mise à jour du statut']);
         }
     }
+public function eleveDetails($id)
+{
+    $db = Database::getInstance();
+
+    // 1️⃣ Infos élève
+    $stmt = $db->prepare("
+        SELECT SPP_UTIL_ID, SPP_UTIL_NOM, SPP_UTIL_PRENOM
+        FROM SPP_ELEVE
+        WHERE SPP_UTIL_ID = :id
+    ");
+    $stmt->execute(['id' => $id]);
+    $eleve = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$eleve) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Élève introuvable']);
+        return;
+    }
+
+    // 2️⃣ Pointage du jour
+    $stmtJour = $db->prepare("
+        SELECT s.SPP_SEAN_ID,
+               s.SPP_SEAN_HEURE_DEB,
+               s.SPP_SEAN_HEURE_FIN,
+               s.SPP_SEAN_COMM,
+               es.SPP_ENS_SEAN_STATUS
+        FROM SPP_SEANCE s
+        LEFT JOIN SPP_ENSEI_SEAN es 
+            ON es.SPP_SEAN_ID = s.SPP_SEAN_ID
+        WHERE s.SPP_UTIL_ID = :id
+        AND DATE(s.SPP_SEAN_DATE) = CURDATE()
+        ORDER BY s.SPP_SEAN_ID DESC
+        LIMIT 1
+    ");
+    $stmtJour->execute(['id' => $id]);
+    $pointageJour = $stmtJour->fetch(PDO::FETCH_ASSOC);
+
+    // 3️⃣ Historique (hors aujourd’hui)
+    $stmtHist = $db->prepare("
+        SELECT 
+            SPP_SEAN_DATE,
+            SPP_SEAN_HEURE_DEB,
+            SPP_SEAN_HEURE_FIN,
+            SPP_SEAN_COMM
+        FROM SPP_SEANCE
+        WHERE SPP_UTIL_ID = :id
+        ORDER BY SPP_SEAN_DATE DESC
+    ");
+    $stmtHist->execute(['id' => $id]);
+    $historique = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
+
+    header('Content-Type: application/json');
+    echo json_encode([
+        'eleve' => $eleve,
+        'pointageJour' => $pointageJour,
+        'historique' => $historique
+    ]);
+}
 }
