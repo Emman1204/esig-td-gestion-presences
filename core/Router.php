@@ -103,6 +103,14 @@ class Router
                 return;
             }
         }
+        // ===============================
+        // 🔹 UPDATE STATUT ENSEIGNANT
+        // ===============================
+        if ($uri === 'enseignant/updateStatut' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once APP_PATH . '/controllers/EnseignantController.php';
+            (new EnseignantController())->updateStatut();
+            return;
+        }
 
         // -------------------------------
         // 404 - AUCUNE ROUTE TROUVÉE

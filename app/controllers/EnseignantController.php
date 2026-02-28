@@ -98,27 +98,27 @@ class EnseignantController extends Controller
             echo json_encode(['status' => 'error', 'message' => 'Erreur lors de la mise à jour du statut']);
         }
     }
-public function eleveDetails($id)
-{
-    $db = Database::getInstance();
+    public function eleveDetails($id)
+    {
+        $db = Database::getInstance();
 
-    // 1️⃣ Infos élève
-    $stmt = $db->prepare("
+        // 1️⃣ Infos élève
+        $stmt = $db->prepare("
         SELECT SPP_UTIL_ID, SPP_UTIL_NOM, SPP_UTIL_PRENOM
         FROM SPP_ELEVE
         WHERE SPP_UTIL_ID = :id
     ");
-    $stmt->execute(['id' => $id]);
-    $eleve = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->execute(['id' => $id]);
+        $eleve = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$eleve) {
-        http_response_code(404);
-        echo json_encode(['error' => 'Élève introuvable']);
-        return;
-    }
+        if (!$eleve) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Élève introuvable']);
+            return;
+        }
 
-    // 2️⃣ Pointage du jour
-    $stmtJour = $db->prepare("
+        // 2️⃣ Pointage du jour
+        $stmtJour = $db->prepare("
         SELECT s.SPP_SEAN_ID,
                s.SPP_SEAN_HEURE_DEB,
                s.SPP_SEAN_HEURE_FIN,
@@ -132,11 +132,11 @@ public function eleveDetails($id)
         ORDER BY s.SPP_SEAN_ID DESC
         LIMIT 1
     ");
-    $stmtJour->execute(['id' => $id]);
-    $pointageJour = $stmtJour->fetch(PDO::FETCH_ASSOC);
+        $stmtJour->execute(['id' => $id]);
+        $pointageJour = $stmtJour->fetch(PDO::FETCH_ASSOC);
 
-    // 3️⃣ Historique (hors aujourd’hui)
-    $stmtHist = $db->prepare("
+        // 3️⃣ Historique (hors aujourd’hui)
+        $stmtHist = $db->prepare("
         SELECT 
             SPP_SEAN_DATE,
             SPP_SEAN_HEURE_DEB,
@@ -146,14 +146,46 @@ public function eleveDetails($id)
         WHERE SPP_UTIL_ID = :id
         ORDER BY SPP_SEAN_DATE DESC
     ");
-    $stmtHist->execute(['id' => $id]);
-    $historique = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
+        $stmtHist->execute(['id' => $id]);
+        $historique = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
 
-    header('Content-Type: application/json');
-    echo json_encode([
-        'eleve' => $eleve,
-        'pointageJour' => $pointageJour,
-        'historique' => $historique
-    ]);
-}
+        header('Content-Type: application/json');
+        echo json_encode([
+            'eleve' => $eleve,
+            'pointageJour' => $pointageJour,
+            'historique' => $historique
+        ]);
+    }
+    public function updateStatut()
+    {
+        header('Content-Type: application/json');
+        $db = Database::getInstance();
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!isset($data['seanceId'], $data['statut'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Paramètres manquants']);
+            exit;
+        }
+
+        $seanceId = (int)$data['seanceId'];
+        $statut = $data['statut'];
+
+        try {
+            // 🔹 Mettre à jour le statut directement dans SPP_ENSEI_SEAN
+            $sql = "UPDATE SPP_ENSEI_SEAN 
+                SET SPP_ENS_SEAN_STATUS = :statut 
+                WHERE SPP_SEAN_ID = :seanceId";
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['statut' => $statut, 'seanceId' => $seanceId]);
+
+            echo json_encode(['status' => 'success']);
+        } catch (PDOException $e) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Erreur SQL : ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
 }
