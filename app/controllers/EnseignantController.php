@@ -141,7 +141,8 @@ class EnseignantController extends Controller
             SPP_SEAN_DATE,
             SPP_SEAN_HEURE_DEB,
             SPP_SEAN_HEURE_FIN,
-            SPP_SEAN_COMM
+            SPP_SEAN_COMM,
+            SPP_SEAN_ID
         FROM SPP_SEANCE
         WHERE SPP_UTIL_ID = :id
         ORDER BY SPP_SEAN_DATE DESC

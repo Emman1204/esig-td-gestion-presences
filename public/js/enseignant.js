@@ -157,12 +157,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${h.SPP_SEAN_COMM ?? '-'}</td>
                 <td>
                     <select class="status-select" data-seance-id="${h.SPP_SEAN_ID}">
+                    
                         <option value="EN ATTENTE" ${h.SPP_ENS_SEAN_STATUS === 'EN ATTENTE' ? 'selected' : ''}>EN ATTENTE</option>
                         <option value="PRÉSENT" ${h.SPP_ENS_SEAN_STATUS === 'PRÉSENT' ? 'selected' : ''}>PRÉSENT</option>
                         <option value="ABSENT" ${h.SPP_ENS_SEAN_STATUS === 'ABSENT' ? 'selected' : ''}>ABSENT</option>
                         <option value="RETARD" ${h.SPP_ENS_SEAN_STATUS === 'RETARD' ? 'selected' : ''}>RETARD</option>
                     </select>
                 </td>
+
             </tr>
         `;
                         });
