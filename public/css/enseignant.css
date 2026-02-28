@@ -322,3 +322,17 @@ Coins arrondis en bas du tableau
 .historique-table tbody tr:last-child td:last-child {
     border-bottom-right-radius: 10px;
 }
+
+/* Contenu modal */
+.modal-content {
+    background-color: #ffffff;
+    margin: 5% auto; /* un peu plus haut pour scroll si nécessaire */
+    padding: 25px 30px;
+    width: 350px;
+    max-width: 90%;        /* s’adapte aux écrans petits */
+    max-height: 80vh;      /* limite la hauteur à 80% de la fenêtre */
+    overflow-y: auto;      /* scroll vertical si contenu trop long */
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.2s ease-in-out;
+}

@@ -19,6 +19,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ===============================
+    // 🔹 Fonction pour formater la date
+    // ===============================
+    function formatDate(dateString) {
+        const jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+        const date = new Date(dateString);
+        const jourNom = jours[date.getDay()];
+        const jour = String(date.getDate()).padStart(2, '0');
+        const mois = String(date.getMonth() + 1).padStart(2, '0');
+        const annee = date.getFullYear();
+        return `${jourNom} ${jour}.${mois}.${annee}`;
+    }
+
+    // ===============================
     // 🔹 CLICK SUR UN ÉLÈVE
     // ===============================
     document.querySelectorAll(".eleves-table tbody tr").forEach(tr => {
@@ -34,13 +47,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 })
                 .then(data => {
 
+                    // ===============================
+                    // INFOS ÉLÈVE
+                    // ===============================
                     modalPrenom.textContent = data.eleve.SPP_UTIL_PRENOM;
                     modalNom.textContent = data.eleve.SPP_UTIL_NOM;
 
                     modalPointage.innerHTML = "";
                     modalHistorique.innerHTML = "";
 
-                    // 🔹 Pointage du jour
+                    // ===============================
+                    // 🔹 POINTAGE DU JOUR
+                    // ===============================
                     if (data.pointageJour) {
                         const p = data.pointageJour;
                         modalPointage.innerHTML = `
@@ -60,32 +78,41 @@ document.addEventListener("DOMContentLoaded", () => {
                         modalPointage.innerHTML = `<p>Aucun pointage aujourd’hui.</p>`;
                     }
 
-                    // 🔽 Historique
+                    // ===============================
+                    // 🔽 HISTORIQUE DES POINTAGES
+                    // ===============================
                     if (data.historique?.length > 0) {
                         let table = `
                             <h4>Historique des pointages</h4>
-                            <table class="historique-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Début</th>
-                                        <th>Fin</th>
-                                        <th>Commentaire</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                            <div class="historique-wrapper">
+                                <table class="historique-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Début</th>
+                                            <th>Fin</th>
+                                            <th>Commentaire</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
                         `;
+
                         data.historique.forEach(h => {
                             table += `
                                 <tr>
-                                    <td>${h.SPP_SEAN_DATE}</td>
+                                    <td>${formatDate(h.SPP_SEAN_DATE)}</td>
                                     <td>${h.SPP_SEAN_HEURE_DEB ?? '-'}</td>
                                     <td>${h.SPP_SEAN_HEURE_FIN ?? '-'}</td>
                                     <td>${h.SPP_SEAN_COMM ?? '-'}</td>
                                 </tr>
                             `;
                         });
-                        table += `</tbody></table>`;
+
+                        table += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
                         modalHistorique.innerHTML = table;
                     }
 
@@ -94,4 +121,5 @@ document.addEventListener("DOMContentLoaded", () => {
                 .catch(error => console.error("Erreur lors du chargement des infos de l'élève :", error));
         });
     });
+
 });

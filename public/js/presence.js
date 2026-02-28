@@ -53,54 +53,83 @@ document.addEventListener("DOMContentLoaded", () => {
         timerEl.textContent = "00:00:00";
         timerEl.classList.add("hidden");
     }
+btn.addEventListener("click", () => {
 
-    btn.addEventListener("click", () => {
-        const action = etat === "depart" ? "depart" : "fin";
-        const heure = new Date().toLocaleTimeString("fr-FR", { hour12: false });
+    console.log("🟢 CLICK détecté");
+    console.log("Etat actuel :", etat);
+    console.log("SeanceId actuel :", currentSeanceId);
 
-        fetch("/public/eleve/marquerPresence", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "same-origin",
-            body: JSON.stringify({ seanceId: currentSeanceId, action, heure })
-        })
-            .then(async res => {
-                const text = await res.text();
-                try {
-                    const data = JSON.parse(text);
+    const action = etat === "depart" ? "depart" : "fin";
+    const heure = new Date().toLocaleTimeString("fr-FR", { hour12: false });
 
-                    if (data.status === "success") {
-                        if (data.seanceId) {
-                            currentSeanceId = data.seanceId;
-                            btn.dataset.seanceId = currentSeanceId;
-                            // 🔹 Stocker l'heure de départ uniquement si action depart
-                            if (action === "depart") {
-                                btn.dataset.heureDeb = heure;
-                            }
-                        }
-
-                        if (action === "depart") {
-                            etat = "fin";
-                            btn.textContent = "Fin";
-                            btn.classList.add("fin"); // 🔴 bouton rouge
-                            startTimerLive(heure);
-                        }
-                        else {
-                            etat = "depart";
-                            btn.textContent = "Départ";
-                            stopTimer(); // 🔹 Arrêt réel du timer
-                            btn.classList.remove("fin"); // 🟢 retour au vert
-                            btn.dataset.heureDeb = ""; // 🔹 Réinitialiser pour que seance.js ne redémarre pas le timer
-                        }
-
-                        if (window.reloadSeances) window.reloadSeances();
-                    } else {
-                        alert(data.message || "Erreur lors du pointage");
-                    }
-                } catch (e) {
-                    console.error("Réponse non JSON :", text);
-                }
-            })
-            .catch(err => console.error("Erreur AJAX :", err));
+    console.log("📤 Données envoyées :", {
+        seanceId: currentSeanceId,
+        action: action,
+        heure: heure
     });
+
+    fetch("/public/eleve/marquerPresence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ 
+            seanceId: currentSeanceId, 
+            action, 
+            heure 
+        })
+    })
+    .then(async res => {
+        console.log("📡 Réponse HTTP status :", res.status);
+
+        const text = await res.text();
+        console.log("📥 Réponse brute serveur :", text);
+
+        try {
+            const data = JSON.parse(text);
+            console.log("📦 JSON parsé :", data);
+
+            if (data.status === "success") {
+                console.log("✅ Succès côté serveur");
+
+                if (data.seanceId) {
+                    currentSeanceId = data.seanceId;
+                    btn.dataset.seanceId = currentSeanceId;
+                    console.log("🆔 Nouveau seanceId :", currentSeanceId);
+
+                    if (action === "depart") {
+                        btn.dataset.heureDeb = heure;
+                    }
+                }
+
+                if (action === "depart") {
+                    etat = "fin";
+                    btn.textContent = "Fin";
+                    btn.classList.add("fin");
+                    startTimerLive(heure);
+                } else {
+                    etat = "depart";
+                    btn.textContent = "Départ";
+                    stopTimer();
+                    btn.classList.remove("fin");
+                    btn.dataset.heureDeb = "";
+                }
+
+                if (window.reloadSeances) {
+                    console.log("🔄 Reload séances");
+                    window.reloadSeances();
+                }
+
+            } else {
+                console.log("❌ Erreur logique :", data.message);
+                alert(data.message || "Erreur lors du pointage");
+            }
+
+        } catch (e) {
+            console.error("❌ JSON invalide :", text);
+        }
+    })
+    .catch(err => {
+        console.error("❌ Erreur AJAX :", err);
+    });
+});
 });

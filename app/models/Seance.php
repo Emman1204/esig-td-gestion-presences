@@ -33,7 +33,7 @@ class Seance
     public function findByEleve(int $eleveId): array
     {
         $stmt = $this->db->prepare(
-            "SELECT * FROM SPP_SEANCE WHERE SPP_UTIL_ID = :eleveId"
+            "SELECT * FROM SPP_SEANCE WHERE SPP_UTIL_ID = :eleveId ORDER BY SPP_SEAN_DATE DESC, SPP_SEAN_HEURE_DEB DESC"
         );
         $stmt->bindParam(':eleveId', $eleveId, PDO::PARAM_INT);
         $stmt->execute();
@@ -343,6 +343,13 @@ class Seance
      */
     public function marquerPresence(int $seanId, string $heure, ?string $comm = null): bool
     {
+        error_log("===== MARQUER PRESENCE =====");
+
+        $rawInput = file_get_contents("php://input");
+        error_log("RAW INPUT: " . $rawInput);
+
+        $data = json_decode($rawInput, true);
+        error_log("JSON DECODE: " . print_r($data, true));
         // 1️⃣ Récupérer la séance
         $stmt = $this->db->prepare("
         SELECT SPP_SEAN_HEURE_DEB, SPP_SEAN_HEURE_FIN, SPP_UTIL_ID
