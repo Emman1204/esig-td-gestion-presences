@@ -33,6 +33,8 @@ class AuthController extends Controller
             if ($_SESSION['user']['role'] === 'eleve') {
                 header('Location: /public/eleve');
             } elseif ($_SESSION['user']['role'] === 'enseignant') {
+       
+
                 header('Location: /public/enseignant');
             }
 
@@ -112,6 +114,10 @@ class AuthController extends Controller
         if ($user['SPP_UTIL_ROLE'] === 'eleve') {
             header('Location: /public/eleve');
         } elseif ($user['SPP_UTIL_ROLE'] === 'enseignant') {
+                      require_once APP_PATH . '/controllers/EnseignantController.php';
+
+            $profController = new EnseignantController();
+            $profController->verifierEtCreerAbsencesAutomatiques($_SESSION['user']['id']);
             header('Location: /public/enseignant');
         } else {
             // Rôle inconnu → sécurité

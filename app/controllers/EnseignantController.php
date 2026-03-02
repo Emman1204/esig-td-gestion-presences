@@ -130,10 +130,9 @@ class EnseignantController extends Controller
         WHERE s.SPP_UTIL_ID = :id
         AND DATE(s.SPP_SEAN_DATE) = CURDATE()
         ORDER BY s.SPP_SEAN_ID DESC
-        LIMIT 1
     ");
         $stmtJour->execute(['id' => $id]);
-        $pointageJour = $stmtJour->fetch(PDO::FETCH_ASSOC);
+        $pointagesJour = $stmtJour->fetchAll(PDO::FETCH_ASSOC);
 
         // 3️⃣ Historique (hors aujourd’hui)
         $stmtHist = $db->prepare("
@@ -153,7 +152,7 @@ class EnseignantController extends Controller
         header('Content-Type: application/json');
         echo json_encode([
             'eleve' => $eleve,
-            'pointageJour' => $pointageJour,
+            'pointagesJour' => $pointagesJour,
             'historique' => $historique
         ]);
     }
@@ -189,4 +188,84 @@ class EnseignantController extends Controller
         }
         exit;
     }
+    public function verifierEtCreerAbsencesAutomatiques($profId)
+{
+    $db = Database::getInstance();
+    // 🔹 1. Récupérer les horaires de la journée
+    $stmtParam = $db->query("SELECT * FROM SPP_PARAMETRE LIMIT 1");
+    $param = $stmtParam->fetch(PDO::FETCH_ASSOC);
+
+    if (!$param) return;
+   
+
+    $heureActuelle = date('H:i:s');
+
+    $debutMatin = $param['SPP_PARA_HOR_DEB_MAT'];
+    $finMatin   = $param['SPP_PARA_HOR_FIN_MAT'];
+    $debutAprem = $param['SPP_PARA_HOR_DEB_APREM'];
+    $finAprem   = $param['SPP_PARA_HOR_FIN_APREM'];
+
+    $heureDebut = null;
+    $heureFin   = null;
+var_dump($heureActuelle, $debutMatin, $finMatin, $debutAprem, $finAprem);
+
+    // 🔹 3. Récupérer les élèves du prof
+    $stmtEleves = $db->prepare("
+        SELECT u.SPP_UTIL_ID
+        FROM SPP_ELEVE u
+        JOIN SPP_EST_INSCRIT ei ON ei.SPP_UTIL_ID = u.SPP_UTIL_ID
+        JOIN SPP_SUPERVISE s ON s.SPP_CLASSE_ID = ei.SPP_CLASSE_ID
+        WHERE s.SPP_UTIL_ID = :profId
+    ");
+    $stmtEleves->execute(['profId' => $profId]);
+    $eleves = $stmtEleves->fetchAll(PDO::FETCH_ASSOC);
+    var_dump($eleves);
+  
+    foreach ($eleves as $eleve) {
+
+        $eleveId = $eleve['SPP_UTIL_ID'];
+
+        // 🔹 4. Vérifier si séance existe déjà aujourd’hui pour ce créneau
+        $stmtCheck = $db->prepare("
+            SELECT SPP_SEAN_ID
+            FROM SPP_SEANCE 
+            WHERE SPP_UTIL_ID = :eleveId
+            AND DATE(SPP_SEAN_DATE) = CURDATE()
+        ");
+        $stmtCheck->execute([
+            'eleveId' => $eleveId,
+        ]);
+
+        $seanceExist = $stmtCheck->fetch();
+
+        if (!$seanceExist) {
+
+            // 🔹 5. Créer séance vide
+            $stmtInsertSeance = $db->prepare("
+                INSERT INTO SPP_SEANCE 
+                (SPP_UTIL_ID, SPP_SEAN_DATE, SPP_SEAN_HEURE_DEB, SPP_SEAN_HEURE_FIN, SPP_SEAN_COMM)
+                VALUES (:eleveId, CURDATE(), :heureDebut, :heureFin, NULL)
+            ");
+            $stmtInsertSeance->execute([
+                'eleveId' => $eleveId,
+                'heureDebut' => $heureDebut,
+                'heureFin' => $heureFin
+            ]);
+
+            $seanceId = $db->lastInsertId();
+
+            // 🔹 6. Associer statut ABSENT
+            $stmtInsertStatut = $db->prepare("
+                INSERT INTO SPP_ENSEI_SEAN 
+                (SPP_SEAN_ID, SPP_UTIL_ID, SPP_ENS_SEAN_STATUS)
+                VALUES (:seanceId, :profId, 'ABSENT')
+            ");
+            $stmtInsertStatut->execute([
+                'seanceId' => $seanceId,
+                'profId' => $profId
+            ]);
+        }
+    }
+}
+
 }

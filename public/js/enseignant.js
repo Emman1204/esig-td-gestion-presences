@@ -109,23 +109,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     console.log("📦 Historique reçu :", data.historique);
 
-                    // 🔹 POINTAGE DU JOUR
-                    if (data.pointageJour) {
-                        const p = data.pointageJour;
-                        modalPointage.innerHTML = `
-                            <h4>Pointage du jour</h4>
-                            <p><strong>Heure début :</strong> ${p.SPP_SEAN_HEURE_DEB ?? '-'}</p>
-                            <p><strong>Heure fin :</strong> ${p.SPP_SEAN_HEURE_FIN ?? '-'}</p>
-                            <p><strong>Commentaire :</strong> ${p.SPP_SEAN_COMM ?? '-'}</p>
-                            <label>Statut :</label>
-                            <select class="status-select" data-seance-id="${p.SPP_SEAN_ID}">
-                                <option value="EN ATTENTE" ${p.SPP_ENS_SEAN_STATUS === 'EN ATTENTE' ? 'selected' : ''}>EN ATTENTE</option>
-                                <option value="PRÉSENT" ${p.SPP_ENS_SEAN_STATUS === 'PRÉSENT' ? 'selected' : ''}>PRÉSENT</option>
-                                <option value="ABSENT" ${p.SPP_ENS_SEAN_STATUS === 'ABSENT' ? 'selected' : ''}>ABSENT</option>
-                                <option value="RETARD" ${p.SPP_ENS_SEAN_STATUS === 'RETARD' ? 'selected' : ''}>RETARD</option>
-                            </select>
-                        `;
-                        attachStatusListener(modalPointage.querySelector("select"));
+                    // 🔹 POINTAGES DU JOUR (PLUSIEURS)
+                    if (data.pointagesJour && data.pointagesJour.length > 0) {
+
+                        let html = `<h4>Pointages du jour</h4>`;
+
+                        data.pointagesJour.forEach(p => {
+                            html += `
+            <div class="pointage-item">
+                <p><strong>Heure début :</strong> ${p.SPP_SEAN_HEURE_DEB ?? '-'}</p>
+                <p><strong>Heure fin :</strong> ${p.SPP_SEAN_HEURE_FIN ?? '-'}</p>
+                <p><strong>Commentaire :</strong> ${p.SPP_SEAN_COMM ?? '-'}</p>
+                <label>Statut :</label>
+                <select class="status-select" data-seance-id="${p.SPP_SEAN_ID}">
+                    <option value="EN ATTENTE" ${p.SPP_ENS_SEAN_STATUS === 'EN ATTENTE' ? 'selected' : ''}>EN ATTENTE</option>
+                    <option value="PRÉSENT" ${p.SPP_ENS_SEAN_STATUS === 'PRÉSENT' ? 'selected' : ''}>PRÉSENT</option>
+                    <option value="ABSENT" ${p.SPP_ENS_SEAN_STATUS === 'ABSENT' ? 'selected' : ''}>ABSENT</option>
+                    <option value="RETARD" ${p.SPP_ENS_SEAN_STATUS === 'RETARD' ? 'selected' : ''}>RETARD</option>
+                    <option value="EXCUSE" ${p.SPP_ENS_SEAN_STATUS === 'EXCUSE' ? 'selected' : ''}>EXCUSE</option>
+
+                </select>
+                <hr>
+            </div>
+        `;
+                        });
+
+                        modalPointage.innerHTML = html;
+
+                        // 🔹 Attacher le listener à TOUS les selects
+                        modalPointage.querySelectorAll(".status-select")
+                            .forEach(select => attachStatusListener(select));
+
                     } else {
                         modalPointage.innerHTML = `<p>Aucun pointage aujourd’hui.</p>`;
                     }
@@ -162,6 +176,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         <option value="PRÉSENT" ${h.SPP_ENS_SEAN_STATUS === 'PRÉSENT' ? 'selected' : ''}>PRÉSENT</option>
                         <option value="ABSENT" ${h.SPP_ENS_SEAN_STATUS === 'ABSENT' ? 'selected' : ''}>ABSENT</option>
                         <option value="RETARD" ${h.SPP_ENS_SEAN_STATUS === 'RETARD' ? 'selected' : ''}>RETARD</option>
+                        <option value="EXCUSE" ${h.SPP_ENS_SEAN_STATUS === 'EXCUSE' ? 'selected' : ''}>EXCUSE</option>
+
                     </select>
                 </td>
 
